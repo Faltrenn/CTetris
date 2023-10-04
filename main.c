@@ -102,8 +102,6 @@ int main() {
     offset.y = 0;
 
     while(1) {
-        clear();
-
         clock_t diff = clock() - before;
         now = diff / CLOCKS_PER_SEC;
         if(past != now) {
@@ -111,26 +109,32 @@ int main() {
             offset.y++;
         }
 
+        int key = getch();
+        if(key == 'd') {
+            offset.x+=2;
+        } else if(key == 'a') {
+            offset.x-=2;
+        } else if(key == 's') {
+            offset.y++;
+        }
+
         if(piece_collides(piece, offset)) {
+            for(Block *b = piece; b != NULL; b = b->next) {
+                map[b->position.y + offset.y - 1][b->position.x + offset.x] = '[';
+                map[b->position.y + offset.y - 1][b->position.x + offset.x + 1] = ']';
+            }
             piece = blocks[rand() % 4];
             offset.y = 0;
             offset.x = GAME_WIDTH/2 -1;
         }
+
+        clear();
 
         show_map(map);
 
         show_piece(piece, offset);
 
         refresh();
-
-        int key = getch();
-        if(key == 'd') {
-            offset.x++;
-        } else if(key == 'a') {
-            offset.x--;
-        } else if(key == 's') {
-            offset.y++;
-        }
     }
 
     endwin();
