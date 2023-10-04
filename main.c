@@ -5,8 +5,10 @@
 #include <unistd.h>
 #include <time.h>
 
-#define GAME_WIDTH COLS
+#define GAME_WIDTH (10 * 2)
 #define GAME_HEIGHT LINES
+#define GAME_POSX (COLS/2 - GAME_WIDTH/2)
+#define GAME_POSY 0
 
 typedef struct {
     unsigned int x;
@@ -52,9 +54,9 @@ void show_piece(Block *piece, Vector2 offset) {
     }
 }
 
-int piece_collides(Block *piece, Vector2 offset) {
+int piece_collides(Block *piece, Vector2 offset, char **map) {
     for(Block *p = piece; p != NULL; p = p->next) {
-        if(offset.y + p->position.y >= GAME_HEIGHT) {
+        if(offset.y + p->position.y >= GAME_HEIGHT || map[p->position.y + offset.y][p->position.x + offset.x+1] != '.') {
             return 1;
         }
     }
@@ -76,10 +78,10 @@ int main() {
     nodelay(stdscr, 1);
     curs_set(0);
 
-    char **map = malloc(LINES * sizeof(char **));
-    for(int i = 0; i < LINES; i++) {
-        map[i] = malloc(COLS * sizeof(char *));
-        for(int j = 0; j < COLS; j++) {
+    char **map = malloc(GAME_HEIGHT * sizeof(char **));
+    for(int i = 0; i < GAME_HEIGHT; i++) {
+        map[i] = malloc(GAME_WIDTH * sizeof(char *));
+        for(int j = 0; j < GAME_WIDTH; j++) {
             map[i][j] = '.';
         }
     }
@@ -98,17 +100,12 @@ int main() {
     int past = 0, now = 0;
 
     Vector2 offset;
-    offset.x = GAME_WIDTH/2 - 1;
+    offset.x = GAME_WIDTH/2;
     offset.y = 0;
 
-    while(1) {
-        clock_t diff = clock() - before;
-        now = diff / CLOCKS_PER_SEC;
-        if(past != now) {
-            past = now;
-            offset.y++;
-        }
+    WINDOW *game_window = newwin(GAME_HEIGHT, GAME_WIDTH, GAME_POSY, GAME_POSX);
 
+    while(1) {
         int key = getch();
         if(key == 'd') {
             offset.x+=2;
@@ -118,14 +115,21 @@ int main() {
             offset.y++;
         }
 
-        if(piece_collides(piece, offset)) {
+        clock_t diff = clock() - before;
+        now = diff / CLOCKS_PER_SEC;
+        if(past != now) {
+            past = now;
+            offset.y++;
+        }
+
+        if(piece_collides(piece, offset, map)) {
             for(Block *b = piece; b != NULL; b = b->next) {
                 map[b->position.y + offset.y - 1][b->position.x + offset.x] = '[';
                 map[b->position.y + offset.y - 1][b->position.x + offset.x + 1] = ']';
             }
             piece = blocks[rand() % 4];
             offset.y = 0;
-            offset.x = GAME_WIDTH/2 -1;
+            offset.x = GAME_WIDTH/2;
         }
 
         clear();
