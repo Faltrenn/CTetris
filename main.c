@@ -52,6 +52,15 @@ void show_piece(Block *piece, Vector2 offset) {
     }
 }
 
+int piece_collides(Block *piece, Vector2 offset) {
+    for(Block *p = piece; p != NULL; p = p->next) {
+        if(offset.y + p->position.y >= GAME_HEIGHT) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 int main() {
     initscr();
     cbreak();
@@ -86,7 +95,7 @@ int main() {
             offset.y++;
         }
 
-        if(offset.y >= GAME_HEIGHT) {
+        if(piece_collides(piece, offset)) {
             piece = blocks[rand() % 4];
             offset.y = 0;
             offset.x = GAME_WIDTH/2 -1;
