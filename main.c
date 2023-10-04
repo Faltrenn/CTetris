@@ -48,9 +48,9 @@ Block * create_piece(char *content) {
     return p;
 }
 
-void show_piece(Block *piece, Vector2 offset) {
+void show_piece(Block *piece, Vector2 offset, WINDOW *w) {
     for(Block *p = piece; p != NULL; p = p->next) {
-        mvprintw(p->position.y + offset.y, p->position.x + offset.x, "[]");
+        mvwprintw(w, p->position.y + offset.y, p->position.x + offset.x, "[]");
     }
 }
 
@@ -63,10 +63,10 @@ int piece_collides(Block *piece, Vector2 offset, char **map) {
     return 0;
 }
 
-void show_map(char **map) {
-    for(int i = 0; i < LINES; i++) {
-        for(int j = 0; j < COLS; j++) {
-            mvprintw(i, 0, "%s", map[i]);
+void show_map(char **map, WINDOW *w) {
+    for(int i = 0; i < GAME_HEIGHT; i++) {
+        for(int j = 0; j < GAME_WIDTH; j++) {
+            mvwprintw(w, i, 0, "%s", map[i]);
         }
     }
 }
@@ -80,10 +80,8 @@ int main() {
 
     char **map = malloc(GAME_HEIGHT * sizeof(char **));
     for(int i = 0; i < GAME_HEIGHT; i++) {
-        map[i] = malloc(GAME_WIDTH * sizeof(char *));
-        for(int j = 0; j < GAME_WIDTH; j++) {
-            map[i][j] = '.';
-        }
+        map[i] = malloc((GAME_WIDTH+1) * sizeof(char *));
+        strcpy(map[i], "....................");
     }
 
     Block *blocks[] = {
@@ -132,13 +130,20 @@ int main() {
             offset.x = GAME_WIDTH/2;
         }
 
-        clear();
+        if(strcmp(map[GAME_HEIGHT-1], "[][][][][][][][][][]") == 0) {
+            for(int i = GAME_HEIGHT-1; i > 0; i--) {
+                strcpy(map[i], map[i-1]);
+            }
+            strcpy(map[0], "....................");
+        }
 
-        show_map(map);
+        wclear(game_window);
 
-        show_piece(piece, offset);
+        show_map(map, game_window);
 
-        refresh();
+        show_piece(piece, offset, game_window);
+
+        wrefresh(game_window);
     }
 
     endwin();
