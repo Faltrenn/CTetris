@@ -59,9 +59,14 @@ int main() {
     nodelay(stdscr, 1);
     curs_set(0);
 
-    char *content = " b \nbbb";
+    Block *blocks[] = {
+        create_piece("bbbb"),
+        create_piece("b\nbbb"),
+        create_piece("bbb\nb"),
+        create_piece("bb\nbb")
+    };
 
-    Block *piece = create_piece(content);
+    Block *piece = blocks[rand() % 4];
 
     clock_t before = clock();
 
@@ -79,6 +84,12 @@ int main() {
         if(past != now) {
             past = now;
             offset.y++;
+        }
+
+        if(offset.y >= GAME_HEIGHT) {
+            piece = blocks[rand() % 4];
+            offset.y = 0;
+            offset.x = GAME_WIDTH/2 -1;
         }
 
         show_piece(piece, offset);
