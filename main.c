@@ -61,12 +61,28 @@ int piece_collides(Block *piece, Vector2 offset) {
     return 0;
 }
 
+void show_map(char **map) {
+    for(int i = 0; i < LINES; i++) {
+        for(int j = 0; j < COLS; j++) {
+            mvprintw(i, 0, "%s", map[i]);
+        }
+    }
+}
+
 int main() {
     initscr();
     cbreak();
     noecho();
     nodelay(stdscr, 1);
     curs_set(0);
+
+    char **map = malloc(LINES * sizeof(char **));
+    for(int i = 0; i < LINES; i++) {
+        map[i] = malloc(COLS * sizeof(char *));
+        for(int j = 0; j < COLS; j++) {
+            map[i][j] = '.';
+        }
+    }
 
     Block *blocks[] = {
         create_piece("bbbb"),
@@ -100,6 +116,8 @@ int main() {
             offset.y = 0;
             offset.x = GAME_WIDTH/2 -1;
         }
+
+        show_map(map);
 
         show_piece(piece, offset);
 
