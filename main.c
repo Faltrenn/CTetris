@@ -17,26 +17,29 @@ typedef struct {
 
 typedef struct block {
     Vector2 position;
+    char *instructions;
     struct block *next;
 } Block;
 
-Block * create_block(Vector2 position, Block *next) {
+Block * create_block(Vector2 position, char *instructions, Block *next) {
     Block *b = malloc(sizeof(Block));
     b->position = position;
+    b->instructions = instructions;
     b->next = next;
     return b;
 }
 
 Block * create_piece(char *content) {
     Block *p = NULL;
-    unsigned int x = 0, y = 0;
+    unsigned int x = 0, y = 0, offset = GAME_WIDTH/4;
+
     for(int i = 0; content[i] != '\0'; i++) {
         if(content[i] != '\n') {
             if(content[i] == 'b') {
                 Vector2 position;
-                position.x = x*2;
+                position.x = (x + offset)*2;
                 position.y = y;
-                p = create_block(position, p);
+                p = create_block(position, content, p);
             }
             x++;
         } else {
@@ -48,15 +51,15 @@ Block * create_piece(char *content) {
     return p;
 }
 
-void show_piece(Block *piece, Vector2 offset, WINDOW *w) {
+void show_piece(Block *piece, WINDOW *w) {
     for(Block *p = piece; p != NULL; p = p->next) {
-        mvwprintw(w, p->position.y + offset.y, p->position.x + offset.x, "[]");
+        mvwprintw(w, p->position.y, p->position.x, "[]");
     }
 }
 
-int piece_collides(Block *piece, Vector2 offset, char **map) {
+int piece_collides(Block *piece, char **map) {
     for(Block *p = piece; p != NULL; p = p->next) {
-        if(offset.y + p->position.y >= GAME_HEIGHT || map[p->position.y + offset.y][p->position.x + offset.x+1] != '.') {
+        if(p->position.y >= GAME_HEIGHT || map[p->position.y][p->position.x] != '.') {
             return 1;
         }
     }
@@ -69,6 +72,23 @@ void show_map(char **map, WINDOW *w) {
             mvwprintw(w, i, 0, "%s", map[i]);
         }
     }
+}
+
+void move_piece(Block *piece, Vector2 direction, char **map) {
+    for(Block *p = piece; p != NULL; p = p->next) {
+        int new_posx = p->position.x + 2 * direction.x;
+        if(new_posx < 0 || new_posx >= GAME_WIDTH || map[p->position.y][new_posx] != '.') {
+            return;
+        }
+    }
+    for(Block *p = piece; p != NULL; p = p->next) {
+        p->position.x += 2 * direction.x;
+        p->position.y += direction.y;
+    }
+}
+
+void get_piece(Block *out, char *options[]) {
+    *out = *create_piece(options[rand() % 4]);
 }
 
 int main() {
@@ -84,64 +104,67 @@ int main() {
         strcpy(map[i], "....................");
     }
 
-    Block *blocks[] = {
-        create_piece("bbbb"),
-        create_piece("b\nbbb"),
-        create_piece("bbb\nb"),
-        create_piece("bb\nbb")
+    char *blocks[] = {
+        "bbbb",
+        "b\nbbb",
+        "bbb\nb",
+        "bb\nbb"
     };
 
-    Block *piece = blocks[rand() % 4];
+    Block *piece = malloc(sizeof(Block));
+    get_piece(piece, blocks);
 
     clock_t before = clock();
 
     int past = 0, now = 0;
 
-    Vector2 offset;
-    offset.x = GAME_WIDTH/2;
-    offset.y = 0;
-
     WINDOW *game_window = newwin(GAME_HEIGHT, GAME_WIDTH, GAME_POSY, GAME_POSX);
 
     while(1) {
+        Vector2 direction;
+        direction.x = 0;
+        direction.y = 0;
+
         int key = getch();
         if(key == 'd') {
-            offset.x+=2;
+            direction.x = 1;
         } else if(key == 'a') {
-            offset.x-=2;
+            direction.x = -1;
         } else if(key == 's') {
-            offset.y++;
+            direction.y = 1;
         }
 
         clock_t diff = clock() - before;
         now = diff / CLOCKS_PER_SEC;
         if(past != now) {
             past = now;
-            offset.y++;
+            direction.y = 1;
         }
 
-        if(piece_collides(piece, offset, map)) {
+        move_piece(piece, direction, map);
+
+        if(piece_collides(piece, map)) {
             for(Block *b = piece; b != NULL; b = b->next) {
-                map[b->position.y + offset.y - 1][b->position.x + offset.x] = '[';
-                map[b->position.y + offset.y - 1][b->position.x + offset.x + 1] = ']';
+                map[b->position.y - 1][b->position.x] = '[';
+                map[b->position.y - 1][b->position.x + 1] = ']';
             }
-            piece = blocks[rand() % 4];
-            offset.y = 0;
-            offset.x = GAME_WIDTH/2;
+            get_piece(piece, blocks);
         }
 
-        if(strcmp(map[GAME_HEIGHT-1], "[][][][][][][][][][]") == 0) {
-            for(int i = GAME_HEIGHT-1; i > 0; i--) {
-                strcpy(map[i], map[i-1]);
+        for(int i = GAME_HEIGHT-1; i > 0; i--) {
+            if(strcmp(map[i], "[][][][][][][][][][]") == 0) {
+                for(int j = i; j > 0; j--) {
+                    strcpy(map[j], map[j-1]);
+                }
+                strcpy(map[0], "....................");
             }
-            strcpy(map[0], "....................");
         }
 
         wclear(game_window);
 
         show_map(map, game_window);
 
-        show_piece(piece, offset, game_window);
+        show_piece(piece, game_window);
 
         wrefresh(game_window);
     }
