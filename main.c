@@ -17,14 +17,12 @@ typedef struct {
 
 typedef struct block {
     Vector2 position;
-    char *instructions;
     struct block *next;
 } Block;
 
 Block * create_block(Vector2 position, char *instructions, Block *next) {
     Block *b = malloc(sizeof(Block));
     b->position = position;
-    b->instructions = instructions;
     b->next = next;
     return b;
 }
