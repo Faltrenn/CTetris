@@ -96,6 +96,8 @@ int main() {
     nodelay(stdscr, 1);
     curs_set(0);
 
+    srand(time(NULL));
+
     char **map = malloc(GAME_HEIGHT * sizeof(char **));
     for(int i = 0; i < GAME_HEIGHT; i++) {
         map[i] = malloc((GAME_WIDTH+1) * sizeof(char *));
@@ -147,6 +149,9 @@ int main() {
                 map[b->position.y - 1][b->position.x + 1] = ']';
             }
             get_piece(piece, blocks);
+            if(piece_collides(piece, map)) {
+                break;
+            }
         }
 
         for(int i = GAME_HEIGHT-1; i > 0; i--) {
