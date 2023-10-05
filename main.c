@@ -20,6 +20,10 @@ typedef struct block {
     struct block *next;
 } Block;
 
+typedef struct {
+    Block *blocks;
+} Piece;
+
 Block * create_block(Vector2 position, char *instructions, Block *next) {
     Block *b = malloc(sizeof(Block));
     b->position = position;
@@ -27,8 +31,10 @@ Block * create_block(Vector2 position, char *instructions, Block *next) {
     return b;
 }
 
-Block * create_piece(char *content) {
-    Block *p = NULL;
+Piece * create_piece(char *content) {
+    Piece *p = malloc(sizeof(Piece));
+    p->rotation = 0;
+    p->blocks = NULL;
     unsigned int x = 0, y = 0, offset = GAME_WIDTH/4;
 
     for(int i = 0; content[i] != '\0'; i++) {
@@ -37,7 +43,7 @@ Block * create_piece(char *content) {
                 Vector2 position;
                 position.x = (x + offset)*2;
                 position.y = y;
-                p = create_block(position, content, p);
+                p->blocks = create_block(position, content, p->blocks);
             }
             x++;
         } else {
@@ -49,15 +55,15 @@ Block * create_piece(char *content) {
     return p;
 }
 
-void show_piece(Block *piece, WINDOW *w) {
-    for(Block *p = piece; p != NULL; p = p->next) {
-        mvwprintw(w, p->position.y, p->position.x, "[]");
+void show_piece(Piece *piece, WINDOW *w) {
+    for(Block *b = piece->blocks; b != NULL; b = b->next) {
+        mvwprintw(w, b->position.y, b->position.x, "[]");
     }
 }
 
-int piece_collides(Block *piece, char **map) {
-    for(Block *p = piece; p != NULL; p = p->next) {
-        if(p->position.y >= GAME_HEIGHT || map[p->position.y][p->position.x] != '.') {
+int piece_collides(Piece *piece, char **map) {
+    for(Block *b = piece->blocks; b != NULL; b = b->next) {
+        if(b->position.y >= GAME_HEIGHT || map[b->position.y][b->position.x] != '.') {
             return 1;
         }
     }
@@ -72,21 +78,81 @@ void show_map(char **map, WINDOW *w) {
     }
 }
 
-void move_piece(Block *piece, Vector2 direction, char **map) {
-    for(Block *p = piece; p != NULL; p = p->next) {
-        int new_posx = p->position.x + 2 * direction.x;
-        if(new_posx < 0 || new_posx >= GAME_WIDTH || map[p->position.y][new_posx] != '.') {
+void move_piece(Piece *piece, Vector2 direction, char **map) {
+    for(Block *b = piece->blocks; b != NULL; b = b->next) {
+        int new_posx = b->position.x + 2 * direction.x;
+        if(new_posx < 0 || new_posx >= GAME_WIDTH || map[b->position.y][new_posx] != '.') {
             return;
         }
     }
-    for(Block *p = piece; p != NULL; p = p->next) {
-        p->position.x += 2 * direction.x;
-        p->position.y += direction.y;
+    for(Block *b = piece->blocks; b != NULL; b = b->next) {
+        b->position.x += 2 * direction.x;
+        b->position.y += direction.y;
     }
 }
 
-void get_piece(Block *out, char *options[]) {
+void get_piece(Piece *out, char *options[]) {
     *out = *create_piece(options[rand() % 4]);
+}
+/*
+  []       01
+[][][]  10 11 12
+
+  []       01
+  [][]     11 12
+  []       21
+
+
+[][][]  10 11 12
+  []       21
+
+  []       01
+[][]    10 11
+  []       21
+
+[][]    00 01
+[][]    10 11
+
+[][][]  00 01 02
+[]      10
+
+[][]    00 01
+  []       11
+  []       21
+
+[][][][] 00 01 02 03
+
+[] 03
+[] 13
+[] 22
+[] 33
+*/
+void rotate_blocks(Block * blocks, unsigned int rotation) {
+    int last_col = blocks->position.x;
+
+    for(Block *b = blocks; b != NULL; b = b->next) {
+        if(b->position.x == last_col) {
+
+        }
+    }
+
+    switch (rotation)
+    {
+    case 0:
+
+        break;
+
+    default:
+        break;
+    }
+}
+
+void rotate_piece(Piece *piece) {
+    piece->rotation++;
+    if(piece->rotation > 3)
+        piece->rotation = 0;
+    
+    rotate_blocks(piece->blocks, piece->rotation);
 }
 
 int main() {
@@ -95,6 +161,8 @@ int main() {
     noecho();
     nodelay(stdscr, 1);
     curs_set(0);
+
+    keypad(stdscr, TRUE);
 
     srand(time(NULL));
 
@@ -111,7 +179,7 @@ int main() {
         "bb\nbb"
     };
 
-    Block *piece = malloc(sizeof(Block));
+    Piece *piece = malloc(sizeof(Piece));
     get_piece(piece, blocks);
 
     clock_t before = clock();
@@ -126,11 +194,11 @@ int main() {
         direction.y = 0;
 
         int key = getch();
-        if(key == 'd') {
+        if(key == KEY_RIGHT) {
             direction.x = 1;
-        } else if(key == 'a') {
+        } else if(key == KEY_LEFT) {
             direction.x = -1;
-        } else if(key == 's') {
+        } else if(key == KEY_DOWN) {
             direction.y = 1;
         }
 
@@ -144,7 +212,7 @@ int main() {
         move_piece(piece, direction, map);
 
         if(piece_collides(piece, map)) {
-            for(Block *b = piece; b != NULL; b = b->next) {
+            for(Block *b = piece->blocks; b != NULL; b = b->next) {
                 map[b->position.y - 1][b->position.x] = '[';
                 map[b->position.y - 1][b->position.x + 1] = ']';
             }
