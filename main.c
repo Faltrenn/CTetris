@@ -33,7 +33,6 @@ Block * create_block(Vector2 position, char *instructions, Block *next) {
 
 Piece * create_piece(char *content) {
     Piece *p = malloc(sizeof(Piece));
-    p->rotation = 0;
     p->blocks = NULL;
     unsigned int x = 0, y = 0, offset = GAME_WIDTH/4;
 
@@ -93,66 +92,6 @@ void move_piece(Piece *piece, Vector2 direction, char **map) {
 
 void get_piece(Piece *out, char *options[]) {
     *out = *create_piece(options[rand() % 4]);
-}
-/*
-  []       01
-[][][]  10 11 12
-
-  []       01
-  [][]     11 12
-  []       21
-
-
-[][][]  10 11 12
-  []       21
-
-  []       01
-[][]    10 11
-  []       21
-
-[][]    00 01
-[][]    10 11
-
-[][][]  00 01 02
-[]      10
-
-[][]    00 01
-  []       11
-  []       21
-
-[][][][] 00 01 02 03
-
-[] 03
-[] 13
-[] 22
-[] 33
-*/
-void rotate_blocks(Block * blocks, unsigned int rotation) {
-    int last_col = blocks->position.x;
-
-    for(Block *b = blocks; b != NULL; b = b->next) {
-        if(b->position.x == last_col) {
-
-        }
-    }
-
-    switch (rotation)
-    {
-    case 0:
-
-        break;
-
-    default:
-        break;
-    }
-}
-
-void rotate_piece(Piece *piece) {
-    piece->rotation++;
-    if(piece->rotation > 3)
-        piece->rotation = 0;
-    
-    rotate_blocks(piece->blocks, piece->rotation);
 }
 
 int main() {
