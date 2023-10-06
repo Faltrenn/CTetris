@@ -124,7 +124,16 @@ void move_piece(Piece *piece, Vector2 direction, char **map) {
 }
 
 void get_piece(Piece *out, Instruction *options[]) {
-    *out = *create_piece(options[rand() % 4]);
+    *out = *create_piece(options[rand() % 7]);
+}
+
+void rotate_piece(Piece *piece, char **map) {
+    int last_rot = piece->rot;
+    piece->rot++;
+    if(piece->rot >= piece->n)
+        piece->rot = 0;
+    if(piece_collides(piece, map))
+        piece->rot = last_rot;
 }
 
 int main() {
@@ -149,6 +158,9 @@ int main() {
     instructions[1] = create_instructions((char*[]){" b\n b\nbb", "bbb\n  b", "bb\nb\nb", "b\nbbb", NULL});
     instructions[2] = create_instructions((char*[]){"  b\nbbb", "bb\n b\n b", "bbb\nb", "b\nb\nbb", NULL});
     instructions[3] = create_instructions((char*[]){"bb\nbb", NULL});
+    instructions[4] = create_instructions((char*[]){" b\nbb\n b","bbb\n b", "b\nbb\nb"," b\nbbb", NULL});
+    instructions[5] = create_instructions((char*[]){" bb\nbb","b\nbb\n b", NULL});
+    instructions[6] = create_instructions((char*[]){"bb\n bb"," b\nbb\nb", NULL});
 
     Piece *piece = malloc(sizeof(Piece));
     get_piece(piece, instructions);
@@ -172,13 +184,7 @@ int main() {
         } else if(key == KEY_DOWN) {
             direction.y = 1;
         } else if(key == 'r') {
-            int last_rot = piece->rot;
-            piece->rot++;
-            if(piece->rot >= piece->n)
-                piece->rot = 0;
-            if(piece_collides(piece, map))
-                piece->rot = last_rot;
-
+            rotate_piece(piece, map);
         }
 
         clock_t diff = clock() - before;
