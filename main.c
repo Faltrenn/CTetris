@@ -17,54 +17,87 @@ typedef struct {
 
 typedef struct block {
     Vector2 position;
+    unsigned int id;
     struct block *next;
 } Block;
 
 typedef struct {
+    unsigned int rot;
     Block *blocks;
+    unsigned int n;
 } Piece;
 
-Block * create_block(Vector2 position, char *instructions, Block *next) {
+typedef struct instruction {
+    char *content;
+    struct instruction *next;
+} Instruction;
+
+Instruction * create_instruction(char *content, Instruction *next) {
+    Instruction *instruction = malloc(sizeof(Instruction));
+    instruction->content = malloc((strlen(content) + 1) * sizeof(char));
+    strcpy(instruction->content, content);
+    instruction->next = next;
+    return instruction;
+}
+
+Instruction * create_instructions(char *contents[]) {
+    Instruction *instruction = NULL;
+    for(int i = 0; contents[i] != NULL; i++)
+        instruction = create_instruction(contents[i], instruction);
+
+    return instruction;
+}
+
+Block * create_block(Vector2 position, int id, Block *next) {
     Block *b = malloc(sizeof(Block));
     b->position = position;
+    b->id = id;
     b->next = next;
     return b;
 }
 
-Piece * create_piece(char *content) {
+Piece * create_piece(Instruction *instruction) {
     Piece *p = malloc(sizeof(Piece));
     p->blocks = NULL;
-    unsigned int x = 0, y = 0, offset = GAME_WIDTH/4;
+    p->rot = 0;
+    unsigned int x = 0, y = 0, offset = GAME_WIDTH/4, n=0;
 
-    for(int i = 0; content[i] != '\0'; i++) {
-        if(content[i] != '\n') {
-            if(content[i] == 'b') {
-                Vector2 position;
-                position.x = (x + offset)*2;
-                position.y = y;
-                p->blocks = create_block(position, content, p->blocks);
+    for(Instruction *instruct = instruction; instruct != NULL; instruct = instruct->next) {
+        x = 0;
+        y = 0;
+        for(int i = 0; instruct->content[i] != '\0'; i++) {
+            char c = instruct->content[i];
+            if(c != '\n') {
+                if(c == 'b') {
+                    Vector2 position;
+                    position.x = (x + offset)*2;
+                    position.y = y;
+                    p->blocks = create_block(position, n, p->blocks);
+                }
+                x++;
+            } else {
+                y++;
+                x = 0;
             }
-            x++;
-        } else {
-            y++;
-            x = 0;
         }
+        n++;
     }
-
+    p->n = n;
     return p;
 }
 
 void show_piece(Piece *piece, WINDOW *w) {
     for(Block *b = piece->blocks; b != NULL; b = b->next) {
-        mvwprintw(w, b->position.y, b->position.x, "[]");
+        if(b->id == piece->rot)
+            mvwprintw(w, b->position.y, b->position.x, "[]");
     }
 }
 
 int piece_collides(Piece *piece, char **map) {
     for(Block *b = piece->blocks; b != NULL; b = b->next) {
-        if(b->position.y >= GAME_HEIGHT || map[b->position.y][b->position.x] != '.') {
-            return 1;
-        }
+        if(b->id == piece->rot)
+            if(b->position.y >= GAME_HEIGHT || map[b->position.y][b->position.x] != '.')
+                return 1;
     }
     return 0;
 }
@@ -80,9 +113,9 @@ void show_map(char **map, WINDOW *w) {
 void move_piece(Piece *piece, Vector2 direction, char **map) {
     for(Block *b = piece->blocks; b != NULL; b = b->next) {
         int new_posx = b->position.x + 2 * direction.x;
-        if(new_posx < 0 || new_posx >= GAME_WIDTH || map[b->position.y][new_posx] != '.') {
-            return;
-        }
+        if(b->id == piece->rot)
+            if(new_posx < 0 || new_posx >= GAME_WIDTH || map[b->position.y][new_posx] != '.')
+                return;
     }
     for(Block *b = piece->blocks; b != NULL; b = b->next) {
         b->position.x += 2 * direction.x;
@@ -90,7 +123,7 @@ void move_piece(Piece *piece, Vector2 direction, char **map) {
     }
 }
 
-void get_piece(Piece *out, char *options[]) {
+void get_piece(Piece *out, Instruction *options[]) {
     *out = *create_piece(options[rand() % 4]);
 }
 
@@ -111,15 +144,14 @@ int main() {
         strcpy(map[i], "....................");
     }
 
-    char *blocks[] = {
-        "bbbb",
-        "b\nbbb",
-        "bbb\nb",
-        "bb\nbb"
-    };
+    Instruction **instructions = malloc(4 * sizeof(Instruction));
+    instructions[0] = create_instructions((char*[]){"bbbb", "b\nb\nb\nb", NULL});
+    instructions[1] = create_instructions((char*[]){" b\n b\nbb", "bbb\n  b", "bb\nb\nb", "b\nbbb", NULL});
+    instructions[2] = create_instructions((char*[]){"  b\nbbb", "bb\n b\n b", "bbb\nb", "b\nb\nbb", NULL});
+    instructions[3] = create_instructions((char*[]){"bb\nbb", NULL});
 
     Piece *piece = malloc(sizeof(Piece));
-    get_piece(piece, blocks);
+    get_piece(piece, instructions);
 
     clock_t before = clock();
 
@@ -139,6 +171,10 @@ int main() {
             direction.x = -1;
         } else if(key == KEY_DOWN) {
             direction.y = 1;
+        } else if(key == 'r') {
+            piece->rot++;
+            if(piece->rot >= piece->n)
+                piece->rot = 0;
         }
 
         clock_t diff = clock() - before;
@@ -152,10 +188,12 @@ int main() {
 
         if(piece_collides(piece, map)) {
             for(Block *b = piece->blocks; b != NULL; b = b->next) {
-                map[b->position.y - 1][b->position.x] = '[';
-                map[b->position.y - 1][b->position.x + 1] = ']';
+                if(b->id == piece->rot) {
+                    map[b->position.y - 1][b->position.x] = '[';
+                    map[b->position.y - 1][b->position.x + 1] = ']';
+                }
             }
-            get_piece(piece, blocks);
+            get_piece(piece, instructions);
             if(piece_collides(piece, map)) {
                 break;
             }
