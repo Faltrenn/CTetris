@@ -172,9 +172,13 @@ int main() {
         } else if(key == KEY_DOWN) {
             direction.y = 1;
         } else if(key == 'r') {
+            int last_rot = piece->rot;
             piece->rot++;
             if(piece->rot >= piece->n)
                 piece->rot = 0;
+            if(piece_collides(piece, map))
+                piece->rot = last_rot;
+
         }
 
         clock_t diff = clock() - before;
