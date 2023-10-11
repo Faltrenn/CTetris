@@ -17,14 +17,12 @@ typedef struct {
 
 typedef struct block {
     Vector2 position;
-    unsigned int id;
     struct block *next;
 } Block;
 
 typedef struct {
-    unsigned int rot;
     Block *blocks;
-    unsigned int n;
+    Vector2 position;
 } Piece;
 
 typedef struct instruction {
@@ -48,56 +46,50 @@ Instruction * create_instructions(char *contents[]) {
     return instruction;
 }
 
-Block * create_block(Vector2 position, int id, Block *next) {
+Block * create_block(Vector2 position, Block *next) {
     Block *b = malloc(sizeof(Block));
     b->position = position;
-    b->id = id;
     b->next = next;
     return b;
 }
 
-Piece * create_piece(Instruction *instruction) {
+Piece * create_piece(char *instruction) {
     Piece *p = malloc(sizeof(Piece));
     p->blocks = NULL;
-    p->rot = 0;
-    unsigned int x = 0, y = 0, offset = GAME_WIDTH/4, n=0;
+    p->position.x = GAME_WIDTH/4 + 1;
+    p->position.y = 0;
+    unsigned int x = 0, y = 0;
 
-    for(Instruction *instruct = instruction; instruct != NULL; instruct = instruct->next) {
-        x = 0;
-        y = 0;
-        for(int i = 0; instruct->content[i] != '\0'; i++) {
-            char c = instruct->content[i];
-            if(c != '\n') {
-                if(c == 'b') {
-                    Vector2 position;
-                    position.x = (x + offset)*2;
-                    position.y = y;
-                    p->blocks = create_block(position, n, p->blocks);
-                }
-                x++;
-            } else {
-                y++;
-                x = 0;
+    for(int i = 0; instruction[i] != '\0'; i++) {
+        char c = instruction[i];
+        if(c != '\n') {
+            if(c == 'b') {
+                Vector2 position;
+                position.x = x *2;
+                position.y = y;
+                p->blocks = create_block(position, p->blocks);
             }
+            x++;
+        } else {
+            y++;
+            x = 0;
         }
-        n++;
     }
-    p->n = n;
     return p;
 }
 
 void show_piece(Piece *piece, WINDOW *w) {
     for(Block *b = piece->blocks; b != NULL; b = b->next) {
-        if(b->id == piece->rot)
-            mvwprintw(w, b->position.y, b->position.x, "[]");
+        mvwprintw(w, b->position.y + piece->position.y, b->position.x + piece->position.x, "[]");
     }
 }
 
 int piece_collides(Piece *piece, char **map) {
     for(Block *b = piece->blocks; b != NULL; b = b->next) {
-        if(b->id == piece->rot)
-            if(b->position.y >= GAME_HEIGHT || map[b->position.y][b->position.x] != '.')
-                return 1;
+        int posx = b->position.x + piece->position.x;
+        int posy = b->position.y + piece->position.y;
+        if(posy >= GAME_HEIGHT || map[posy][posx] != '.')
+            return 1;
     }
     return 0;
 }
@@ -112,28 +104,74 @@ void show_map(char **map, WINDOW *w) {
 
 void move_piece(Piece *piece, Vector2 direction, char **map) {
     for(Block *b = piece->blocks; b != NULL; b = b->next) {
-        int new_posx = b->position.x + 2 * direction.x;
-        if(b->id == piece->rot)
-            if(new_posx < 0 || new_posx >= GAME_WIDTH || map[b->position.y][new_posx] != '.')
-                return;
+        int new_posx = (b->position.x + piece->position.x) + 2 * direction.x;
+        if(new_posx < 0 || new_posx >= GAME_WIDTH || map[b->position.y + piece->position.y][new_posx] != '.')
+            return;
     }
-    for(Block *b = piece->blocks; b != NULL; b = b->next) {
-        b->position.x += 2 * direction.x;
-        b->position.y += direction.y;
-    }
+    piece->position.x += direction.x * 2;
+    piece->position.y += direction.y;
 }
 
-void get_piece(Piece *out, Instruction *options[]) {
-    *out = *create_piece(options[rand() % 7]);
+Block * copy_blocks(Block * blocks) {
+    Block *copy = malloc(sizeof(Block));
+    Block *aux = copy;
+    for(Block *b = blocks; b != NULL; b = b->next) {
+        if(b != NULL) {
+            *aux = *b;
+            aux->next = malloc(sizeof(Block));
+            aux = aux->next;
+        } else {
+            aux->next = NULL;
+        }
+    }
+    return copy;
 }
 
 void rotate_piece(Piece *piece, char **map) {
-    int last_rot = piece->rot;
-    piece->rot++;
-    if(piece->rot >= piece->n)
-        piece->rot = 0;
-    if(piece_collides(piece, map))
-        piece->rot = last_rot;
+    Block *backup = copy_blocks(piece->blocks);
+    int i = 0, lasty = piece->blocks->position.y;
+    for(Block *b = piece->blocks; b != NULL; b = b->next) {
+        if(lasty != b->position.y) {
+            i++;
+            lasty = b->position.y;
+        }
+        Vector2 new_position;
+        new_position.y = b->position.x/2;
+        new_position.x = i*2;
+        b->position = new_position;
+    }
+
+    if(piece_collides(piece, map)) {
+        piece->blocks = backup;
+    } else {
+        Block *new_blocks = NULL;
+
+        int y = 0;
+        while(piece->blocks != NULL) {
+            Block *last = NULL;
+            Block *now = piece->blocks;
+            while(now != NULL) {
+                if(now->position.y == y) {
+                    new_blocks = create_block(now->position, new_blocks);
+                    if(last == NULL) {
+                        piece->blocks = piece->blocks->next;
+                    } else {
+                        last->next = now->next;
+                    }
+                    now = now->next;
+                } else {
+                    last = now;
+                    now = now->next;
+                }
+            }
+            y++;
+        }
+        piece->blocks = new_blocks;
+    }
+}
+
+void get_piece(Piece *out, char *options[]) {
+    *out = *create_piece(options[rand() % 6]);
 }
 
 int main() {
@@ -153,17 +191,18 @@ int main() {
         strcpy(map[i], "....................");
     }
 
-    Instruction **instructions = malloc(4 * sizeof(Instruction));
-    instructions[0] = create_instructions((char*[]){"bbbb", "b\nb\nb\nb", NULL});
-    instructions[1] = create_instructions((char*[]){" b\n b\nbb", "bbb\n  b", "bb\nb\nb", "b\nbbb", NULL});
-    instructions[2] = create_instructions((char*[]){"  b\nbbb", "bb\n b\n b", "bbb\nb", "b\nb\nbb", NULL});
-    instructions[3] = create_instructions((char*[]){"bb\nbb", NULL});
-    instructions[4] = create_instructions((char*[]){" b\nbb\n b","bbb\n b", "b\nbb\nb"," b\nbbb", NULL});
-    instructions[5] = create_instructions((char*[]){" bb\nbb","b\nbb\n b", NULL});
-    instructions[6] = create_instructions((char*[]){"bb\n bb"," b\nbb\nb", NULL});
+    char *options[] = {
+        "bbbb",
+        "b\nbbb",
+        "  b\nbbb",
+        " b\nbbb",
+        "bb\nbb",
+        " bb\nbb",
+        "bb\n bb",
+    };
 
     Piece *piece = malloc(sizeof(Piece));
-    get_piece(piece, instructions);
+    get_piece(piece, options);
 
     clock_t before = clock();
 
@@ -198,12 +237,10 @@ int main() {
 
         if(piece_collides(piece, map)) {
             for(Block *b = piece->blocks; b != NULL; b = b->next) {
-                if(b->id == piece->rot) {
-                    map[b->position.y - 1][b->position.x] = '[';
-                    map[b->position.y - 1][b->position.x + 1] = ']';
-                }
+                map[b->position.y + piece->position.y - 1][b->position.x + piece->position.x] = '[';
+                map[b->position.y + piece->position.y - 1][b->position.x + piece->position.x + 1] = ']';
             }
-            get_piece(piece, instructions);
+            get_piece(piece, options);
             if(piece_collides(piece, map)) {
                 break;
             }

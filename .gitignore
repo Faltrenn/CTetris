@@ -1,6 +1,9 @@
 # Prerequisites
 *.d
 
+# Custom
+teste.c
+
 # Object files
 *.o
 *.ko
