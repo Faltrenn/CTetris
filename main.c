@@ -174,6 +174,38 @@ void get_piece(Piece *out, char *options[]) {
     *out = *create_piece(options[rand() % 6]);
 }
 
+void render(WINDOW *w, char **map, Piece *piece) {
+    wclear(w);
+
+    show_map(map, w);
+
+    show_piece(piece, w);
+
+    wrefresh(w);
+}
+
+void down_piece(Piece * piece, char **map, char *options[], WINDOW *w) {
+    Vector2 direction;
+    direction.x = 0;
+    direction.y = 1;
+    while(1) {
+        move_piece(piece, direction, map);
+
+        if(piece_collides(piece, map)) {
+            for(Block *b = piece->blocks; b != NULL; b = b->next) {
+                map[b->position.y + piece->position.y - 1][b->position.x + piece->position.x] = '[';
+                map[b->position.y + piece->position.y - 1][b->position.x + piece->position.x + 1] = ']';
+            }
+            get_piece(piece, options);
+            break;
+        }
+
+        render(w, map, piece);
+
+        usleep(10000/2);
+    }
+}
+
 int main() {
     initscr();
     cbreak();
@@ -222,6 +254,8 @@ int main() {
             direction.x = -1;
         } else if(key == KEY_DOWN) {
             direction.y = 1;
+        } else if(key == ' ') {
+            down_piece(piece, map, options, game_window);
         } else if(key == 'r') {
             rotate_piece(piece, map);
         }
@@ -255,13 +289,7 @@ int main() {
             }
         }
 
-        wclear(game_window);
-
-        show_map(map, game_window);
-
-        show_piece(piece, game_window);
-
-        wrefresh(game_window);
+        render(game_window, map, piece);
     }
 
     endwin();
