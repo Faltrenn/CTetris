@@ -1,2 +1,2 @@
 Compile com:
-gcc -c main.c -lncurses
+gcc -c *.c && gcc -o main.out *.o -lncurses
