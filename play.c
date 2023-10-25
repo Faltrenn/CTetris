@@ -113,7 +113,7 @@ void play() {
             }
             get_piece(piece, options);
             if(piece_collides(piece, map)) {
-                save_record(record);
+                gameover(record);
                 break;
             }
         }
@@ -136,4 +136,40 @@ void play() {
     }
 
     endwin();
+}
+
+void gameover(Record record) {
+    char name[4] = {'_', '_', '_', '\0'};
+    nodelay(stdscr, 0);
+    curs_set(1);
+    keypad(stdscr, 1);
+
+    int i = 0;
+    while(i < 3) {
+        clear();
+
+        mvprintw(0,0, "Name: %s", name);
+        
+        move(0, 6+i);
+
+        int key = getch();
+        if(key >= 'a' && key <= 'z') {
+            name[i] = key;
+            i++;
+        } else if(key == 127) {
+            if (i > 0) {
+                i--;
+                name[i] = '_';
+            }
+        }
+
+        refresh();
+    }
+
+    curs_set(0);
+    name[3] = '\0';
+
+    strcpy(record.name, name);
+
+    save_record(record);
 }

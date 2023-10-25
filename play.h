@@ -12,4 +12,6 @@ typedef struct {
     unsigned int score;
 } Record;
 
+void gameover(Record record);
+
 void save_record(Record record);
