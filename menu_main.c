@@ -1,6 +1,7 @@
 #include <ncurses.h>
 #include <string.h>
-#include "menu_play.h"
+#include <unistd.h>
+#include "play.h"
 #include "menu_main.h"
 
 void menu_main() {
@@ -17,6 +18,7 @@ void menu_main() {
 
     char *options[] = {
         "Jogar",
+        "Records",
         "Sair",
         NULL
     };
@@ -46,14 +48,27 @@ void menu_main() {
             }
         } else if(key == '\n') {
             if(strcmp(options[selected], "Jogar") == 0) {
-                menu_play();
+                play();
+            } else if(strcmp(options[selected], "Records") == 0) {
+                FILE *records = fopen("records", "rb");
+                if(records != NULL) {
+                    clear();
+                    Record record;
+                    fread(&record, sizeof(Record), 1, records);
+                    int i = 0;
+                    while(fread(&record, sizeof(Record), 1, records)) {
+                        mvprintw(i, 0, "%s : %d", record.name, record.score);
+                        i++;
+                    }
+                    refresh();
+                    usleep(1000000);
+                }
+                fclose(records);
             } else if(strcmp(options[selected], "Sair") == 0) {
                 break;
             }
         }
-
         refresh();
     }
-
     endwin();
 }

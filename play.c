@@ -2,7 +2,7 @@
 #include <time.h>
 #include <string.h>
 #include <stdlib.h>
-#include "menu_play.h"
+#include "play.h"
 #include "piece.h"
 
 void show_map(char **map, WINDOW *w) {
@@ -23,7 +23,13 @@ void render_map(WINDOW *w, char **map, Piece *piece) {
     wrefresh(w);
 }
 
-void menu_play() {
+void save_record(Record record) {
+    FILE *save_at = fopen("records", "ab");
+    fwrite(&record, sizeof(Record), 1, save_at);
+    fclose(save_at);
+}
+
+void play() {
     initscr();
     cbreak();
     noecho();
@@ -57,7 +63,21 @@ void menu_play() {
 
     int past = 0, now = 0;
 
+    char *name = "Opa";
+    Record record;
+    for(int i = 0; i < 3; i++) {
+        record.name[i] = name[i];
+    }
+    record.name[3] = '\0';
+    record.score = 0;
+
     WINDOW *game_window = newwin(GAME_HEIGHT, GAME_WIDTH, GAME_POSY, GAME_POSX);
+
+    WINDOW *infos = newwin(INFO_HEIGHT, INFO_WIDTH, INFO_POSY, INFO_POSX);
+    
+    wclear(infos);
+    mvwprintw(infos, 0, 0, "Pontuacao: %d", record.score);
+    wrefresh(infos);
 
     while(1) {
         Vector2 direction;
@@ -93,6 +113,7 @@ void menu_play() {
             }
             get_piece(piece, options);
             if(piece_collides(piece, map)) {
+                save_record(record);
                 break;
             }
         }
@@ -103,6 +124,11 @@ void menu_play() {
                     strcpy(map[j], map[j-1]);
                 }
                 strcpy(map[0], "....................");
+                record.score++;
+
+                wclear(infos);
+                mvwprintw(infos, 0, 0, "Pontuacao: %d", record.score);
+                wrefresh(infos);
             }
         }
 

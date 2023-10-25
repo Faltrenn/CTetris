@@ -6,4 +6,9 @@
 #define GAME_POSX (COLS/2 - GAME_WIDTH/2)
 #define GAME_POSY 0
 
+#define INFO_WIDTH (COLS - GAME_WIDTH)/2 
+#define INFO_HEIGHT LINES
+#define INFO_POSX GAME_POSX + GAME_WIDTH
+#define INFO_POSY 0
+
 #endif

@@ -2,7 +2,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include "menu_play.h"
+#include "play.h"
 #include "piece.h"
 
 Block * create_block(Vector2 position, Block *next) {
