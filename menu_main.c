@@ -11,7 +11,7 @@ void menu_main() {
     nodelay(stdscr, 0);
     curs_set(0);
 
-    keypad(stdscr, TRUE);
+    keypad(stdscr, 1);
 
     start_color();
     init_pair(1, COLOR_BLUE, COLOR_BLACK);
@@ -57,13 +57,15 @@ void menu_main() {
                     fread(&record, sizeof(Record), 1, records);
                     int i = 0;
                     while(fread(&record, sizeof(Record), 1, records)) {
-                        mvprintw(i, 0, "%s : %d", record.name, record.score);
+                        mvprintw(i, 0, "%s: %d", record.name, record.score);
                         i++;
                     }
                     refresh();
-                    usleep(1000000);
+                    
+                    fclose(records);
+
+                    while(getch() != '\n');
                 }
-                fclose(records);
             } else if(strcmp(options[selected], "Sair") == 0) {
                 break;
             }

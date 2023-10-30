@@ -2,8 +2,8 @@
 *.d
 
 # Custom
-teste.c
 records
+testes/
 
 # Object files
 *.o
