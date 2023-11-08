@@ -13,11 +13,7 @@
 #include "menu_home.h"
 
 void menu_login(void) {
-    initscr();
-    cbreak();
-    noecho();
     nodelay(stdscr, 0);
-    curs_set(0);
 
     keypad(stdscr, 1);
 
@@ -42,14 +38,20 @@ void menu_login(void) {
             selected++;
             if(selected == 2) {
                 // Validar login
-                if (try_login(name, password)) {
+                int code = try_login(name, password);
+                if(code == 1) {
                     menu_home();
                     break;
-                } else {
+                }else {
                     clear();
-                    print_centered(0, COLS, "Nenhum usuário com essa senha foi encontrado.", 0);
+                    if(code == 5)
+                        print_centered(0, COLS, "Usuario ou senha invalidos.", 0);
+                    else if(code == 0)
+                        print_centered(0, COLS, "Nenhum usuario com essa senha foi encontrado.", 0);
+                    
                     print_centered(1, COLS, "Pressione ENTER para sair", 0);
                     refresh();
+                    
                     while(getch() != '\n');
                     
                     for(int i = 0; i < 7; i++) {

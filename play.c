@@ -30,15 +30,11 @@ void save_record(Record record) {
 }
 
 void play(void) {
-    initscr();
-    cbreak();
-    noecho();
     nodelay(stdscr, 1);
-    curs_set(0);
 
     keypad(stdscr, TRUE);
 
-    srand(time(NULL));
+    srand((unsigned int)time(NULL));
 
     char **map = malloc(GAME_HEIGHT * sizeof(char **));
     for(int i = 0; i < GAME_HEIGHT; i++) {
@@ -98,7 +94,7 @@ void play(void) {
         }
 
         clock_t diff = clock() - before;
-        now = diff / CLOCKS_PER_SEC;
+        now = (int)diff / CLOCKS_PER_SEC;
         if(past != now) {
             past = now;
             direction.y = 1;

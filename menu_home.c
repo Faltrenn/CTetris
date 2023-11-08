@@ -13,7 +13,6 @@
 
 void menu_home(void) {
     nodelay(stdscr, 0);
-    curs_set(0);
 
     keypad(stdscr, 1);
 

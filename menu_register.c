@@ -12,7 +12,6 @@
 
 void menu_register(void) {
     nodelay(stdscr, 0);
-    curs_set(0);
 
     keypad(stdscr, 1);
 
@@ -37,22 +36,27 @@ void menu_register(void) {
             selected++;
             if(selected == 2) {
                 // Validar registro
-                if(try_register(name, password)) {
-                    
+                int code = try_register(name, password);
+                if(code == 1) {
                     break;
                 } else {
                     clear();
-                    print_centered(0, COLS, "Nenhum usuário com essa senha foi encontrado.", 0);
+                    if(code == 6)
+                        print_centered(0, COLS, "Usuario ja existente.", 0);
+                    else if(code == 5)
+                        print_centered(0, COLS, "Usuario ou senha invalidos.", 0);
+                    
                     print_centered(1, COLS, "Pressione ENTER para sair", 0);
                     refresh();
+                    
                     while(getch() != '\n');
-                    for(int i = 0; i < 7; i++) {
+
+                    for(int i = 0; i < 7; i++)
                         name[i] = '\0';
-                    }
                     name_count = 0;
-                    for (int i = 0; i < 10; i++) {
+                    
+                    for (int i = 0; i < 10; i++)
                         password[i] = '\0';
-                    }
                     password_count = 0;
                     
                     selected = 0;
