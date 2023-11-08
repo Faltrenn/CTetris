@@ -1,6 +1,8 @@
 #include <ncurses.h>
 #include "piece.h"
 
+#ifndef play_h
+#define play_h
 void play(void);
 
 void show_map(char **map, WINDOW *w);
@@ -15,3 +17,5 @@ typedef struct {
 void gameover(Record record);
 
 void save_record(Record record);
+
+#endif

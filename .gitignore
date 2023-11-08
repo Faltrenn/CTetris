@@ -4,6 +4,7 @@
 # Custom
 records
 testes/
+*.dat
 
 # Object files
 *.o
