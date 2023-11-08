@@ -29,7 +29,7 @@ void save_record(Record record) {
     fclose(save_at);
 }
 
-void play() {
+void play(void) {
     initscr();
     cbreak();
     noecho();
