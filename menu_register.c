@@ -21,14 +21,17 @@ void menu_register(void) {
     
     while(1) {
         clear();
-        print_centered(0, 15, "Digite seu nome", 0);
-        print_centered(1, 6, "______", 0);
-        print_centered(1, 6, name, -1);
+        
+        print_centered(0, COLS, "Pressione ESC para voltar", 0);
+        
+        print_centered(1, COLS, "Digite seu nome", 0);
+        print_centered(2, COLS, "______", 0);
+        print_centered(2, 6, name, -1);
         
         if(selected > 0) {
-            print_centered(2, 16, "Digite sua senha", 0);
-            print_centered(3, 9, "_________", 0);
-            print_centered(3, 9, password, -1);
+            print_centered(3, COLS, "Digite sua senha", 0);
+            print_centered(4, COLS, "_________", 0);
+            print_centered(4, 9, password, -1);
         }
 
         int key = getch();
@@ -62,6 +65,18 @@ void menu_register(void) {
                     selected = 0;
                 }
             }
+        }else if(key == 27) {
+            for(int i = 0; i < 7; i++) {
+                name[i] = '\0';
+            }
+            name_count = 0;
+            for (int i = 0; i < 10; i++) {
+                password[i] = '\0';
+            }
+            password_count = 0;
+            
+            selected = 0;
+            break;
         } else if(selected == 0) {
             if(key == 127 && name_count > 0) {
                 name_count--;
