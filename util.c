@@ -31,16 +31,18 @@ int verify_name_and_password(char name[7], char password[10]) {
     return 1;
 }
 
-int try_login(char name[7], char password[10]) {
+int try_login(char name[7], char password[10], Player *player) {
     int code = verify_name_and_password(name, password);
     if(code != 1)
         return code;
     FILE *file = fopen("players.dat", "rb");
     if(file != NULL){
-        Player player;
+        Player *p = malloc(sizeof(Player));
         while(!feof(file)) {
-            fread(&player, sizeof(Player), 1, file);
-            if(strcmp(player.name, name) == 0) {
+            fread(p, sizeof(Player), 1, file);
+            if(strcmp(p->name, name) == 0) {
+                *player = *p;
+                free(p);
                 fclose(file);
                 return 1;
             }
@@ -65,10 +67,10 @@ int try_register(char name[7], char password[10]) {
     if(file == NULL) {
         file = fopen("players", "wb");
     }
-    fwrite(player, sizeof(Player), 1, file);
+    fwrite(player, sizeof(player), 1, file);
     
     clear();
-    print_centered(0, COLS, player->name,0);
+    print_centered(0, COLS, player->name, 0);
     refresh();
     
     while (getch() != '\n');
@@ -80,9 +82,10 @@ int try_register(char name[7], char password[10]) {
 Player * search_player(char name[7]) {
     FILE *file = fopen("players.dat", "rb");
     if(file != NULL) {
-        Player player;
+        Player *player = malloc(sizeof(Player));
         while(!feof(file)) {
-            fread(&player, sizeof(Player), 1, file);
+            fread(player, sizeof(Player), 1, file);
+            return player;
         }
         fclose(file);
     }

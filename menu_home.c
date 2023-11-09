@@ -11,7 +11,7 @@
 #include "util.h"
 #include "play.h"
 
-void menu_home(void) {
+void menu_home(Player *player) {
     nodelay(stdscr, 0);
 
     keypad(stdscr, 1);
@@ -51,16 +51,23 @@ void menu_home(void) {
             }
         } else if(key == '\n') {
             if(strcmp(options[selected], "Jogar") == 0) {
-                play();
+                clear();
+                print_centered(0, COLS, "nome: ", 0);
+                print_centered(1, COLS, player->name, 0);
+                refresh();
+                while(getch() != '\n');
+                play(player);
             } else if(strcmp(options[selected], "Records") == 0) {
-                FILE *records = fopen("records", "rb");
+                FILE *records = fopen("records.dat", "rb");
                 if(records != NULL) {
                     clear();
                     Record record;
-                    fread(&record, sizeof(Record), 1, records);
                     int i = 0;
-                    while(fread(&record, sizeof(Record), 1, records)) {
-                        mvprintw(i, 0, "%s: %d", record.name, record.score);
+                    while(!feof(records)) {
+                        fread(&record, sizeof(Record), 1, records);
+                        char msg[COLS];
+                        sprintf(msg, "%s: %d", record.name, record.score);
+                        print_centered(i*2, COLS, msg, 0);
                         i++;
                     }
                     refresh();

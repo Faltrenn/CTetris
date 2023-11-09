@@ -23,13 +23,16 @@ void render_map(WINDOW *w, char **map, Piece *piece) {
     wrefresh(w);
 }
 
-void save_record(Record record) {
-    FILE *save_at = fopen("records", "ab");
-    fwrite(&record, sizeof(Record), 1, save_at);
+void save_record(Record *record) {
+    FILE *save_at = fopen("records.dat", "ab");
+    if(save_at == NULL) {
+        save_at = fopen("records.dat", "wb");
+    }
+    fwrite(record, sizeof(Record), 1, save_at);
     fclose(save_at);
 }
 
-void play(void) {
+void play(Player *player) {
     nodelay(stdscr, 1);
 
     keypad(stdscr, TRUE);
@@ -59,20 +62,19 @@ void play(void) {
 
     int past = 0, now = 0;
 
-    char *name = "Opa";
-    Record record;
-    for(int i = 0; i < 3; i++) {
-        record.name[i] = name[i];
+    Record *record = malloc(sizeof(Record));
+    for (int i = 0; i < 6; i++) {
+        record->name[i] = player->name[i];
     }
-    record.name[3] = '\0';
-    record.score = 0;
+    record->name[6] = '\0';
+    record->score = 0;
 
     WINDOW *game_window = newwin(GAME_HEIGHT, GAME_WIDTH, GAME_POSY, GAME_POSX);
 
     WINDOW *infos = newwin(INFO_HEIGHT, INFO_WIDTH, INFO_POSY, INFO_POSX);
     
     wclear(infos);
-    mvwprintw(infos, 0, 0, "Pontuacao: %d", record.score);
+    mvwprintw(infos, 0, 0, "Pontuacao: %d", record->score);
     wrefresh(infos);
 
     while(1) {
@@ -109,7 +111,7 @@ void play(void) {
             }
             get_piece(piece, options);
             if(piece_collides(piece, map)) {
-                gameover(record);
+                save_record(record);
                 break;
             }
         }
@@ -120,10 +122,10 @@ void play(void) {
                     strcpy(map[j], map[j-1]);
                 }
                 strcpy(map[0], "....................");
-                record.score++;
+                record->score++;
 
                 wclear(infos);
-                mvwprintw(infos, 0, 0, "Pontuacao: %d", record.score);
+                mvwprintw(infos, 0, 0, "Pontuacao: %d", record->score);
                 wrefresh(infos);
             }
         }
@@ -167,5 +169,5 @@ void gameover(Record record) {
 
     strcpy(record.name, name);
 
-    save_record(record);
+    
 }

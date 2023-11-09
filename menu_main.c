@@ -50,7 +50,6 @@ void menu_main(void) {
         } else if(key == '\n') {
             if(strcmp(options[selected], "Entrar") == 0) {
                 menu_login();
-                break;
             } else if(strcmp(options[selected], "Registrar-se") == 0) {
                 menu_register();
             } else if(strcmp(options[selected], "Sair") == 0) {

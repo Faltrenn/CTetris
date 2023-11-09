@@ -9,7 +9,8 @@
 #define menu_home_h
 
 #include <stdio.h>
+#include "util.h"
 
-void menu_home(void);
+void menu_home(Player *player);
 
 #endif /* menu_home_h */

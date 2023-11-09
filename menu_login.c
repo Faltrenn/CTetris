@@ -8,6 +8,7 @@
 #include "menu_login.h"
 #include <ncurses.h>
 #include <string.h>
+#include <stdlib.h>
 #include "util.h"
 #include "menu_main.h"
 #include "menu_home.h"
@@ -38,9 +39,10 @@ void menu_login(void) {
             selected++;
             if(selected == 2) {
                 // Validar login
-                int code = try_login(name, password);
+                Player *player = malloc(sizeof(Player));
+                int code = try_login(name, password, player);
                 if(code == 1) {
-                    menu_home();
+                    menu_home(player);
                     break;
                 }else {
                     clear();
@@ -66,6 +68,18 @@ void menu_login(void) {
                     selected = 0;
                 }
             }
+        }else if(key == 27) {
+            for(int i = 0; i < 7; i++) {
+                name[i] = '\0';
+            }
+            name_count = 0;
+            for (int i = 0; i < 10; i++) {
+                password[i] = '\0';
+            }
+            password_count = 0;
+            
+            selected = 0;
+            break;
         } else if(selected == 0) {
             if(key == 127 && name_count > 0) {
                 name_count--;
