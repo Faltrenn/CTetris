@@ -105,6 +105,10 @@ void play(Player *player) {
         move_piece(piece, direction, map);
 
         if(piece_collides(piece, map)) {
+            if(piece->position.y == 0) {
+                save_record(record);
+                break;
+            }
             for(Block *b = piece->blocks; b != NULL; b = b->next) {
                 map[b->position.y + piece->position.y - 1][b->position.x + piece->position.x] = '[';
                 map[b->position.y + piece->position.y - 1][b->position.x + piece->position.x + 1] = ']';

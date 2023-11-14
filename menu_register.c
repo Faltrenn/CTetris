@@ -22,16 +22,16 @@ void menu_register(void) {
     while(1) {
         clear();
         
-        print_centered(0, COLS, "Pressione ESC para voltar", 0);
+        print_centered(0, COLS, "Pressione ESC para voltar", 0, 0);
         
-        print_centered(1, COLS, "Digite seu nome", 0);
-        print_centered(2, COLS, "______", 0);
-        print_centered(2, 6, name, -1);
+        print_centered(1, COLS, "Digite seu nome", 0, 0);
+        print_centered(2, COLS, "______", 0, 0);
+        print_centered(2, 6, name, -1, 0);
         
         if(selected > 0) {
-            print_centered(3, COLS, "Digite sua senha", 0);
-            print_centered(4, COLS, "_________", 0);
-            print_centered(4, 9, password, -1);
+            print_centered(3, COLS, "Digite sua senha", 0, 0);
+            print_centered(4, COLS, "_________", 0, 0);
+            print_centered(4, 9, password, -1, 0);
         }
 
         int key = getch();
@@ -45,11 +45,11 @@ void menu_register(void) {
                 } else {
                     clear();
                     if(code == 6)
-                        print_centered(0, COLS, "Usuario ja existente.", 0);
+                        print_centered(0, COLS, "Usuario ja existente.", 0, 0);
                     else if(code == 5)
-                        print_centered(0, COLS, "Usuario ou senha invalidos.", 0);
+                        print_centered(0, COLS, "Usuario ou senha invalidos.", 0, 0);
                     
-                    print_centered(1, COLS, "Pressione ENTER para sair", 0);
+                    print_centered(1, COLS, "Pressione ENTER para sair", 0, 0);
                     refresh();
                     
                     while(getch() != '\n');

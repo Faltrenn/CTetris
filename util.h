@@ -13,7 +13,7 @@ typedef struct {
     char password[10];
 } Player;
 
-void print_centered(int line_offset, int n, char* msg, int horizontal);
+void print_centered(int line_offset, int n, char* msg, int horizontal, int vertical);
 int key_is_letter(char key);
 int verify_name_and_password(char name[7], char password[10]);
 int try_login(char name[7], char password[10], Player *player);

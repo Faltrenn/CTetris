@@ -33,10 +33,10 @@ void menu_home(Player *player) {
         for(i = 0; options[i] != NULL; i++) {
             if(i == selected) {
                 attron(COLOR_PAIR(1));
-                print_centered(i, COLS, options[i], 0);
+                print_centered(i, COLS, options[i], 0, 0);
                 attroff(COLOR_PAIR(1));
             } else {
-                print_centered(i, COLS, options[i], 0);
+                print_centered(i, COLS, options[i], 0, 0);
             }
         }
 
@@ -52,8 +52,9 @@ void menu_home(Player *player) {
         } else if(key == '\n') {
             if(strcmp(options[selected], "Jogar") == 0) {
                 clear();
-                print_centered(0, COLS, "nome: ", 0);
-                print_centered(1, COLS, player->name, 0);
+                char msg[COLS];
+                sprintf(msg, "Player: %s", player->name);
+                print_centered(0, COLS, msg, 0, 0);
                 refresh();
                 while(getch() != '\n');
                 play(player);
@@ -67,7 +68,7 @@ void menu_home(Player *player) {
                         fread(&record, sizeof(Record), 1, records);
                         char msg[COLS];
                         sprintf(msg, "%s: %d", record.name, record.score);
-                        print_centered(i*2, COLS, msg, 0);
+                        print_centered(i, COLS, msg, 0, -1);
                         i++;
                     }
                     refresh();

@@ -31,10 +31,10 @@ void menu_main(void) {
         for(i = 0; options[i] != NULL; i++) {
             if(i == selected) {
                 attron(COLOR_PAIR(1));
-                print_centered(i, COLS, options[i], 0);
+                print_centered(i, COLS, options[i], 0, 0);
                 attroff(COLOR_PAIR(1));
             } else {
-                print_centered(i, COLS, options[i], 0);
+                print_centered(i, COLS, options[i], 0, 0);
             }
         }
 

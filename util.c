@@ -10,13 +10,19 @@
 #include <string.h>
 #include <stdlib.h>
 
-void print_centered(int line_offset, int n, char *msg, int horizontal) {
-    int line_pos = LINES/2-1+line_offset;
+void print_centered(int line_offset, int n, char *msg, int horizontal, int vertical) {
     int col_pos = COLS/2 - (int)strlen(msg)/2;
     if (horizontal == -1) {
         col_pos = COLS/2 - (n/2);
     } else if(horizontal == 1) {
         col_pos = COLS/2 + (n/2);
+    }
+    
+    int line_pos = LINES/2-1+line_offset;
+    if (vertical == -1) {
+        line_pos = line_offset;
+    } else if(vertical == 1) {
+        line_pos = LINES;
     }
     mvprintw(line_pos, col_pos, "%s", msg);
 }
@@ -68,12 +74,6 @@ int try_register(char name[7], char password[10]) {
         file = fopen("players", "wb");
     }
     fwrite(player, sizeof(player), 1, file);
-    
-    clear();
-    print_centered(0, COLS, player->name, 0);
-    refresh();
-    
-    while (getch() != '\n');
     
     fclose(file);
     return 1;
