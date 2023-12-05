@@ -25,16 +25,16 @@ void menu_login(void) {
     while(1) {
         clear();
 
-        print_centered(0, COLS, "Pressione ESC para voltar", 0, 0);
+        print_centered(stdscr, 0, COLS, LINES, COLS, "Pressione ESC para voltar", 0, 0);
         
-        print_centered(1, COLS, "Digite seu nome", 0, 0);
-        print_centered(2, COLS, "______", 0, 0);
-        print_centered(2, 6, name, -1, 0);
+        print_centered(stdscr, 1, COLS, LINES, COLS, "Digite seu nome", 0, 0);
+        print_centered(stdscr, 2, COLS, LINES, COLS, "______", 0, 0);
+        print_centered(stdscr, 2, COLS, LINES, 6, name, -1, 0);
         
         if(selected > 0) {
-            print_centered(3, COLS, "Digite sua senha", 0, 0);
-            print_centered(4, COLS, "_________", 0, 0);
-            print_centered(4, 9, password, -1, 0);
+            print_centered(stdscr, 3, COLS, LINES, COLS, "Digite sua senha", 0, 0);
+            print_centered(stdscr, 4, COLS, LINES, COLS, "_________", 0, 0);
+            print_centered(stdscr, 4, COLS, LINES, 9, password, -1, 0);
         }
 
         int key = getch();
@@ -50,11 +50,11 @@ void menu_login(void) {
                 }else {
                     clear();
                     if(code == 5)
-                        print_centered(0, COLS, "Usuario ou senha invalidos.", 0, 0);
+                        print_centered(stdscr, 0, COLS, LINES, COLS, "Usuario ou senha invalidos.", 0, 0);
                     else if(code == 0)
-                        print_centered(0, COLS, "Nenhum usuario com essa senha foi encontrado.", 0, 0);
+                        print_centered(stdscr, 0, COLS, LINES, COLS, "Nenhum usuario com essa senha foi encontrado.", 0, 0);
                     
-                    print_centered(1, COLS, "Pressione ENTER para sair", 0, 0);
+                    print_centered(stdscr, 1, COLS, LINES, COLS, "Pressione ENTER para sair", 0, 0);
                     refresh();
                     
                     while(getch() != '\n');

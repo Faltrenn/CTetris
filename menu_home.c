@@ -10,6 +10,7 @@
 #include <string.h>
 #include "util.h"
 #include "play.h"
+#include "menu_score.h"
 
 void menu_home(Player *player) {
     nodelay(stdscr, 0);
@@ -33,10 +34,10 @@ void menu_home(Player *player) {
         for(i = 0; options[i] != NULL; i++) {
             if(i == selected) {
                 attron(COLOR_PAIR(1));
-                print_centered(i, COLS, options[i], 0, 0);
+                print_centered(stdscr, i, COLS, LINES, COLS, options[i], 0, 0);
                 attroff(COLOR_PAIR(1));
             } else {
-                print_centered(i, COLS, options[i], 0, 0);
+                print_centered(stdscr, i, COLS, LINES, COLS, options[i], 0, 0);
             }
         }
 
@@ -54,29 +55,12 @@ void menu_home(Player *player) {
                 clear();
                 char msg[COLS];
                 sprintf(msg, "Player: %s", player->name);
-                print_centered(0, COLS, msg, 0, 0);
+                print_centered(stdscr, 0, COLS, LINES, COLS, msg, 0, 0);
                 refresh();
                 while(getch() != '\n');
                 play(player);
             } else if(strcmp(options[selected], "Records") == 0) {
-                FILE *records = fopen("records.dat", "rb");
-                if(records != NULL) {
-                    clear();
-                    Record record;
-                    int i = 0;
-                    while(!feof(records)) {
-                        fread(&record, sizeof(Record), 1, records);
-                        char msg[COLS];
-                        sprintf(msg, "%s: %d", record.name, record.score);
-                        print_centered(i, COLS, msg, 0, -1);
-                        i++;
-                    }
-                    refresh();
-
-                    fclose(records);
-
-                    while(getch() != '\n');
-                }
+                menu_score(player);
             } else if(strcmp(options[selected], "Sair") == 0) {
                 break;
             }
