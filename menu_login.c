@@ -47,7 +47,7 @@ void menu_login(void) {
                 if(code == 1) {
                     menu_home(player);
                     break;
-                }else {
+                } else {
                     clear();
                     if(code == 5)
                         print_centered(stdscr, 0, COLS, LINES, COLS, "Usuario ou senha invalidos.", 0, 0);

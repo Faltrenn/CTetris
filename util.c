@@ -47,6 +47,9 @@ int try_login(char name[7], char password[10], Player *player) {
         while(!feof(file)) {
             fread(p, sizeof(Player), 1, file);
             if(strcmp(p->name, name) == 0) {
+                if(strcmp(p->password, password) != 0 ) {
+                    return 0;
+                }
                 *player = *p;
                 free(p);
                 fclose(file);
@@ -85,10 +88,13 @@ Player * search_player(char name[7]) {
         Player *player = malloc(sizeof(Player));
         while(!feof(file)) {
             fread(player, sizeof(Player), 1, file);
-            return player;
+            if(strcmp(player->name, name) == 0) {
+                fclose(file);
+                return player;
+            }
         }
-        fclose(file);
     }
+    fclose(file);
     return NULL;
 }
 

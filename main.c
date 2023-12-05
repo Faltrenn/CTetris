@@ -6,8 +6,19 @@
 //
 
 #include "menu_main.h"
+#include <stdlib.h>
+#include "util.h"
 
 int main(void) {
-    menu_main();
+//    menu_main();
+    
+    if(search_player("manel") != NULL) {
+        printf("Encontrou\n");
+    } else {
+        printf("Não existe\n");
+    }
+    
+    getchar();
+    
     return 0;
 }
