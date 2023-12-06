@@ -17,15 +17,19 @@ RecordList * create_recordlist(Record record, RecordList *next) {
     return nl;
 }
 
+int verify_filter(FilterConfig fc, Record record) {
+    return (fc.filter != CLEAR && (
+                                   (fc.filter == BIGGERTHEN && record.score <= fc.f_value) ||
+                                   (fc.filter == SMALLERTHEN && record.score >= fc.f_value))) ||
+           (fc.view == PLAYER && strcmp(record.name, fc.player->name) != 0);
+}
+
 RecordList * read_scores(char *file, FilterConfig fc) {
     RecordList *list = NULL;
     Record record;
     FILE *f = fopen("records.dat", "rb");
     for (fread(&record, sizeof(Record), 1, f); !feof(f); fread(&record, sizeof(Record), 1, f)) {
-        if(fc.filter != CLEAR && (
-          (fc.filter == BIGGERTHEN && record.score <= fc.f_value) ||
-          (fc.filter == SMALLERTHEN && record.score >= fc.f_value) ||
-          (fc.filter == PLAYER && strcmp(record.name, fc.player->name) != 0))) {
+        if(verify_filter(fc, record)) {
             continue;
         }
         if (list == NULL) {
@@ -74,6 +78,7 @@ void menu_score(Player *player) {
     fc.score = CRESCENT;
     fc.filter = CLEAR;
     fc.f_value = 0;
+    fc.view = ALL;
     fc.player = player;
     
     start_color();
@@ -115,7 +120,6 @@ void menu_score(Player *player) {
             char *options[] = {
                 "Maior que",
                 "Menor que",
-                "Meus",
                 "Remover",
                 "Voltar",
                 NULL
@@ -123,9 +127,9 @@ void menu_score(Player *player) {
             
             while(1) {
                 show_scores(w_r, read_scores("records.dat", fc));
-
+                
                 int selected = selection(w_l, options, COLS/2, LINES);
-
+                
                 if(strcmp(options[selected], "Maior que") == 0) {
                     int number = read_number("Digite o valor");
                     if(number != -1) {
@@ -138,11 +142,30 @@ void menu_score(Player *player) {
                         fc.filter = SMALLERTHEN;
                         fc.f_value = number;
                     }
-                } else if(strcmp(options[selected], "Meus") == 0) {
-                    fc.filter = PLAYER;
                 } else if(strcmp(options[selected], "Remover") == 0) {
                     fc.filter = CLEAR;
                     fc.f_value = 0;
+                } else if(strcmp(options[selected], "Voltar") == 0) {
+                    break;
+                }
+            }
+        } else if(key == 'b') {
+            char *options[] = {
+                "Todos",
+                "Meus",
+                "Voltar",
+                NULL
+            };
+            
+            while(1) {
+                show_scores(w_r, read_scores("records.dat", fc));
+                
+                int selected = selection(w_l, options, COLS/2, LINES);
+                
+                if(strcmp(options[selected], "Todos") == 0) {
+                    fc.view = ALL;
+                } else if(strcmp(options[selected], "Meus") == 0) {
+                    fc.view = PLAYER;
                 } else if(strcmp(options[selected], "Voltar") == 0) {
                     break;
                 }

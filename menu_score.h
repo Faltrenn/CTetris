@@ -19,14 +19,19 @@ typedef enum {
 typedef enum {
     BIGGERTHEN,
     SMALLERTHEN,
-    PLAYER,
     CLEAR
 } Filter;
+
+typedef enum {
+    ALL,
+    PLAYER
+} View;
 
 typedef struct {
     Organizer name;
     Organizer score;
     Filter filter;
+    View view;
     unsigned int f_value;
     Player *player;
 } FilterConfig;
@@ -39,6 +44,8 @@ typedef struct recordlist {
 void menu_score(Player *player);
 
 RecordList * create_recordlist(Record record, RecordList *next);
+
+int verify_filter(FilterConfig fc, Record record);
 
 RecordList * read_scores(char *file, FilterConfig fc);
 
