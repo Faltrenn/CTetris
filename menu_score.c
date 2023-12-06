@@ -27,7 +27,7 @@ RecordList * read_scores(char *file, FilterConfig fc) {
         } else {
             RecordList *last = NULL;
             for (RecordList *element = list; element != NULL; element = element->next) {
-                if((fc.score == CRESCENT && record.score < element->record.score) || (fc.score == DECRESCENT && record.score > element->record.score)) {
+                if((fc.score == CRESCENT && record.score > element->record.score) || (fc.score == DECRESCENT && record.score < element->record.score)) {
                     if(last == NULL) {
                         list = create_recordlist(record, element);
                     } else {
@@ -70,68 +70,61 @@ void menu_score(Player *player) {
     
     unsigned int filtering = 0;
     
-    char *options[] = {
-        "Crescente",
-        "Decrescente",
-        NULL
-    };
-    
     start_color();
     
     show_scores(w_r, read_scores("records.dat", fc));
 
-    
     int key;
-    do {
+    while(1) {
         wclear(w_l);
         
-        print_centered(w_l, 0, COLS/2, LINES, 0, "Pressione ESC para sair", 0, -1);
-        print_centered(w_l, 1, COLS/2, LINES, 0, "Digite f para filtrar", 0, -1);
+        print_centered(w_l, 0, COLS/2, LINES, 0, "Digite f para filtrar", 0, -1);
+        print_centered(w_l, 1, COLS/2, LINES, 0, "Digite o para organizar", 0, -1);
         
         wrefresh(w_l);
         
-        
         key = getch();
-        if(key == 27) {
-            break;
-        } else if(key == 'f') {
-            int selected = 0;
-            do {
-                
+        if(key == 'o') {
+            char *options[] = {
+                "Crescente",
+                "Decrescente",
+                "Voltar",
+                NULL
+            };
+            
+            while(1) {
                 show_scores(w_r, read_scores("records.dat", fc));
-
-                wclear(w_l);
-                int i = 0;
-                for(i = 0; options[i] != NULL; i++) {
-                    if(i == selected) {
-                        wattron(w_l, COLOR_PAIR(1));
-                        print_centered(w_l, i, COLS/2, LINES, COLS/2, options[i], 0, 0);
-                        wattroff(w_l, COLOR_PAIR(1));
-                    } else {
-                        print_centered(w_l, i, COLS/2, LINES, COLS/2, options[i], 0, 0);
-                    }
-                }
-                wrefresh(w_l);
                 
-                key = getch();
-                if(key == 27) {
+                int selected = selection(w_l, options, COLS/2, LINES);
+                
+                if(strcmp(options[selected], "Crescente") == 0) {
+                    fc.score = CRESCENT;
+                } else if(strcmp(options[selected], "Decrescente") == 0) {
+                    fc.score = DECRESCENT;
+                } else if(strcmp(options[selected], "Voltar") == 0) {
                     break;
-                } else if(key == KEY_DOWN) {
-                    if(selected < i-1) {
-                        selected++;
-                    }
-                } else if(key == KEY_UP) {
-                    if(selected > 0) {
-                        selected--;
-                    }
-                } else if(key == '\n') {
-                    if(strcmp(options[selected], "Crescente") == 0) {
-                        fc.score = CRESCENT;
-                    } else if(strcmp(options[selected], "Decrescente") == 0) {
-                        fc.score = DECRESCENT;
-                    }
                 }
-            } while(key != 27);
+            }
+        } else if(key == 'f') {
+            char *options[] = {
+                "Maior que",
+                "Menor que",
+                "Voltar",
+                NULL
+            };
+            
+            while(1) {
+                int selected = selection(w_l, options, COLS/2, LINES);
+                if(strcmp(options[selected], "Maior que") == 0) {
+                    fc.score = CRESCENT;
+                } else if(strcmp(options[selected], "Menor que") == 0) {
+                    fc.score = DECRESCENT;
+                } else if(strcmp(options[selected], "Voltar") == 0) {
+                    break;
+                }
+            }
+        } else if(key == 27) {
+            break;
         }
-    } while(filtering || key != '\n');
+    }
 }

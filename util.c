@@ -98,44 +98,35 @@ Player * search_player(char name[7]) {
     return NULL;
 }
 
-int select_option(WINDOW *w, char *options[], char *title, unsigned int show_start) {
-    start_color();
-    init_pair(1, COLOR_BLUE, COLOR_BLACK);
-    
-    unsigned int selected = 0;
-    int key = 0;
-    while(key != 27) {
-        int start = show_start;
+int selection(WINDOW *w, char *options[], unsigned int width, unsigned int height) {
+    int selected = 0;
+    while(1) {
         wclear(w);
-        print_centered(w, start++, COLS/2, LINES, COLS/2, "Pressione ESC para voltar", 0, -1);
-        print_centered(w, start++, COLS/2, LINES, COLS/2, title, 0, -1);
         int i = 0;
-        for(char *option = options[0]; option != NULL; option = options[++i]) {
+        for(i = 0; options[i] != NULL; i++) {
             if(i == selected) {
-                attron(COLOR_PAIR(1));
-                print_centered(w, start + i, COLS/2, LINES, COLS/2, option, 0, -1);
-                attroff(COLOR_PAIR(1));
+                wattron(w, COLOR_PAIR(1));
+                print_centered(w, i, width, height, width/2, options[i], 0, 0);
+                wattroff(w, COLOR_PAIR(1));
             } else {
-                print_centered(w, start + i, COLS/2, LINES, COLS/2, option, 0, -1);
+                print_centered(w, i, width, height, width/2, options[i], 0, 0);
             }
         }
         wrefresh(w);
         
-        key = getch();
-        while(key != 27) {
-            if(key == '\n' || key == KEY_DOWN || key == KEY_UP) {
-                return selected;
-            } else if(key == KEY_DOWN) {
-                if(++selected >= i)
-                    selected--;
-            } else if(key == KEY_UP) {
-                if(--selected < 0)
-                    selected++;
+        int key = getch();
+        if(key == KEY_DOWN) {
+            if(selected < i-1) {
+                selected++;
             }
-            break;
+        } else if(key == KEY_UP) {
+            if(selected > 0) {
+                selected--;
+            }
+        } else if(key == '\n') {
+            return selected;
         }
     }
-    return -1;
 }
 
 

@@ -21,6 +21,6 @@ int verify_name_and_password(char name[7], char password[10]);
 int try_login(char name[7], char password[10], Player *player);
 int try_register(char name[7], char password[10]);
 Player * search_player(char name[7]);
-int select_option(WINDOW *w, char *options[], char*title, unsigned int show_start);
+int selection(WINDOW *w, char *options[], unsigned int width, unsigned int height);
 
 #endif /* utils_h */
