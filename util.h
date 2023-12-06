@@ -23,5 +23,6 @@ int try_login(char name[7], char password[10], Player *player);
 int try_register(char name[7], char password[10]);
 Player * search_player(char name[7]);
 int selection(WINDOW *w, char *options[], unsigned int width, unsigned int height);
+int read_number(char *title);
 
 #endif /* utils_h */

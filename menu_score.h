@@ -9,6 +9,7 @@
 #define menu_score_h
 
 #include "play.h"
+#include "util.h"
 
 typedef enum {
     CRESCENT,
@@ -18,6 +19,7 @@ typedef enum {
 typedef enum {
     BIGGERTHEN,
     SMALLERTHEN,
+    PLAYER,
     CLEAR
 } Filter;
 
@@ -26,6 +28,7 @@ typedef struct {
     Organizer score;
     Filter filter;
     unsigned int f_value;
+    Player *player;
 } FilterConfig;
 
 typedef struct recordlist {

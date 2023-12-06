@@ -22,7 +22,10 @@ RecordList * read_scores(char *file, FilterConfig fc) {
     Record record;
     FILE *f = fopen("records.dat", "rb");
     for (fread(&record, sizeof(Record), 1, f); !feof(f); fread(&record, sizeof(Record), 1, f)) {
-        if(fc.filter != CLEAR && ((fc.filter == BIGGERTHEN && record.score <= fc.f_value) || (fc.filter == SMALLERTHEN && record.score >= fc.f_value))) {
+        if(fc.filter != CLEAR && (
+          (fc.filter == BIGGERTHEN && record.score <= fc.f_value) ||
+          (fc.filter == SMALLERTHEN && record.score >= fc.f_value) ||
+          (fc.filter == PLAYER && strcmp(record.name, fc.player->name) != 0))) {
             continue;
         }
         if (list == NULL) {
@@ -60,42 +63,6 @@ void show_scores(WINDOW *w, RecordList *r_list) {
         i++;
     }
     wrefresh(w);
-    
-}
-
-int read_number(char *title) {
-    int value_count = 0;
-    char value[5] = {'\0', '\0', '\0', '\0', '\0'};
-    
-    while(1) {
-        clear();
-        
-        print_centered(stdscr, 0, COLS, LINES, COLS, "Pressione ESC para voltar", 0, 0);
-        
-        print_centered(stdscr, 1, COLS, LINES, COLS, title, 0, 0);
-        print_centered(stdscr, 2, COLS, LINES, COLS, "____", 0, 0);
-        print_centered(stdscr, 2, COLS, LINES, 4, value, -1, 0);
-        
-        refresh();
-        
-        int key = getch();
-        if(key == '\n') {
-            return strcmp(value, "") != 0 ? atoi(value) : -1;
-        } else if(key == 27) {
-            for(int i = 0; i < 5; i++) {
-                value[i] = '\0';
-            }
-            value_count = 0;
-            break;
-        } else if(key == 127 && value_count > 0) {
-            value_count--;
-            value[value_count] = '\0';
-        } else if(value_count < 4 && key_is_digit(key)) {
-            value[value_count] = key;
-            value_count++;
-        }
-    }
-    return -1;
 }
 
 void menu_score(Player *player) {
@@ -107,6 +74,7 @@ void menu_score(Player *player) {
     fc.score = CRESCENT;
     fc.filter = CLEAR;
     fc.f_value = 0;
+    fc.player = player;
     
     start_color();
     
@@ -147,7 +115,8 @@ void menu_score(Player *player) {
             char *options[] = {
                 "Maior que",
                 "Menor que",
-                "Clear",
+                "Meus",
+                "Remover",
                 "Voltar",
                 NULL
             };
@@ -169,7 +138,9 @@ void menu_score(Player *player) {
                         fc.filter = SMALLERTHEN;
                         fc.f_value = number;
                     }
-                } else if(strcmp(options[selected], "Clear") == 0) {
+                } else if(strcmp(options[selected], "Meus") == 0) {
+                    fc.filter = PLAYER;
+                } else if(strcmp(options[selected], "Remover") == 0) {
                     fc.filter = CLEAR;
                     fc.f_value = 0;
                 } else if(strcmp(options[selected], "Voltar") == 0) {
@@ -180,4 +151,39 @@ void menu_score(Player *player) {
             break;
         }
     }
+}
+
+int read_number(char *title) {
+    int value_count = 0;
+    char value[5] = {'\0', '\0', '\0', '\0', '\0'};
+    
+    while(1) {
+        clear();
+        
+        print_centered(stdscr, 0, COLS, LINES, COLS, "Pressione ESC para voltar", 0, 0);
+        
+        print_centered(stdscr, 1, COLS, LINES, COLS, title, 0, 0);
+        print_centered(stdscr, 2, COLS, LINES, COLS, "____", 0, 0);
+        print_centered(stdscr, 2, COLS, LINES, 4, value, -1, 0);
+        
+        refresh();
+        
+        int key = getch();
+        if(key == '\n') {
+            return strcmp(value, "") != 0 ? atoi(value) : -1;
+        } else if(key == 27) {
+            for(int i = 0; i < 5; i++) {
+                value[i] = '\0';
+            }
+            value_count = 0;
+            break;
+        } else if(key == 127 && value_count > 0) {
+            value_count--;
+            value[value_count] = '\0';
+        } else if(value_count < 4 && key_is_digit(key)) {
+            value[value_count] = key;
+            value_count++;
+        }
+    }
+    return -1;
 }
