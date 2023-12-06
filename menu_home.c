@@ -17,9 +17,6 @@ void menu_home(Player *player) {
 
     keypad(stdscr, 1);
 
-    start_color();
-    init_pair(1, COLOR_BLUE, COLOR_BLACK);
-
     char *options[] = {
         "Jogar",
         "Records",
@@ -27,7 +24,6 @@ void menu_home(Player *player) {
         NULL
     };
 
-    int selected = 0;
     while(1) {
         int selected = selection(stdscr, options, COLS, LINES);
 

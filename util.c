@@ -31,6 +31,10 @@ int key_is_letter(char key) {
     return (key >=65 && key <= 90) || (key >= 97 && key <= 122);
 }
 
+int key_is_digit(char key) {
+    return (key >= '0' && key <= '9');
+}
+
 int verify_name_and_password(char name[7], char password[10]) {
     if(strlen(name) == 0 || strlen(password) == 0)
         return 5; // Nome ou senha vazios
@@ -99,6 +103,9 @@ Player * search_player(char name[7]) {
 }
 
 int selection(WINDOW *w, char *options[], unsigned int width, unsigned int height) {
+    start_color();
+    init_pair(1, COLOR_BLUE, COLOR_BLACK);
+    
     int selected = 0;
     while(1) {
         wclear(w);

@@ -16,13 +16,16 @@ typedef enum {
 } Organizer;
 
 typedef enum {
-    BIGGER,
-    SMALLER
+    BIGGERTHEN,
+    SMALLERTHEN,
+    CLEAR
 } Filter;
 
 typedef struct {
     Organizer name;
     Organizer score;
+    Filter filter;
+    unsigned int f_value;
 } FilterConfig;
 
 typedef struct recordlist {

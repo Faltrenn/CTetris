@@ -22,6 +22,9 @@ RecordList * read_scores(char *file, FilterConfig fc) {
     Record record;
     FILE *f = fopen("records.dat", "rb");
     for (fread(&record, sizeof(Record), 1, f); !feof(f); fread(&record, sizeof(Record), 1, f)) {
+        if(fc.filter != CLEAR && ((fc.filter == BIGGERTHEN && record.score <= fc.f_value) || (fc.filter == SMALLERTHEN && record.score >= fc.f_value))) {
+            continue;
+        }
         if (list == NULL) {
             list = create_recordlist(record, list);
         } else {
@@ -60,6 +63,41 @@ void show_scores(WINDOW *w, RecordList *r_list) {
     
 }
 
+int read_number(char *title) {
+    int value_count = 0;
+    char value[5] = {'\0', '\0', '\0', '\0', '\0'};
+    
+    while(1) {
+        clear();
+        
+        print_centered(stdscr, 0, COLS, LINES, COLS, "Pressione ESC para voltar", 0, 0);
+        
+        print_centered(stdscr, 1, COLS, LINES, COLS, title, 0, 0);
+        print_centered(stdscr, 2, COLS, LINES, COLS, "____", 0, 0);
+        print_centered(stdscr, 2, COLS, LINES, 4, value, -1, 0);
+        
+        refresh();
+        
+        int key = getch();
+        if(key == '\n') {
+            return strcmp(value, "") != 0 ? atoi(value) : -1;
+        } else if(key == 27) {
+            for(int i = 0; i < 5; i++) {
+                value[i] = '\0';
+            }
+            value_count = 0;
+            break;
+        } else if(key == 127 && value_count > 0) {
+            value_count--;
+            value[value_count] = '\0';
+        } else if(value_count < 4 && key_is_digit(key)) {
+            value[value_count] = key;
+            value_count++;
+        }
+    }
+    return -1;
+}
+
 void menu_score(Player *player) {
     WINDOW *w_l = newwin(LINES, COLS/2, 0, 0);
     WINDOW *w_r = newwin(LINES, COLS/2, 0, COLS/2);
@@ -67,23 +105,23 @@ void menu_score(Player *player) {
     FilterConfig fc;
     fc.name = CRESCENT;
     fc.score = CRESCENT;
-    
-    unsigned int filtering = 0;
+    fc.filter = CLEAR;
+    fc.f_value = 0;
     
     start_color();
     
     show_scores(w_r, read_scores("records.dat", fc));
 
-    int key;
     while(1) {
         wclear(w_l);
         
-        print_centered(w_l, 0, COLS/2, LINES, 0, "Digite f para filtrar", 0, -1);
-        print_centered(w_l, 1, COLS/2, LINES, 0, "Digite o para organizar", 0, -1);
+        print_centered(w_l, 0, COLS/2, LINES, 0, "Pressione ESC para voltar", 0, -1);
+        print_centered(w_l, 1, COLS/2, LINES, 0, "Digite f para filtrar", 0, -1);
+        print_centered(w_l, 2, COLS/2, LINES, 0, "Digite o para organizar", 0, -1);
         
         wrefresh(w_l);
         
-        key = getch();
+        int key = getch();
         if(key == 'o') {
             char *options[] = {
                 "Crescente",
@@ -109,16 +147,31 @@ void menu_score(Player *player) {
             char *options[] = {
                 "Maior que",
                 "Menor que",
+                "Clear",
                 "Voltar",
                 NULL
             };
             
             while(1) {
+                show_scores(w_r, read_scores("records.dat", fc));
+
                 int selected = selection(w_l, options, COLS/2, LINES);
+
                 if(strcmp(options[selected], "Maior que") == 0) {
-                    fc.score = CRESCENT;
+                    int number = read_number("Digite o valor");
+                    if(number != -1) {
+                        fc.filter = BIGGERTHEN;
+                        fc.f_value = number;
+                    }
                 } else if(strcmp(options[selected], "Menor que") == 0) {
-                    fc.score = DECRESCENT;
+                    int number = read_number("Digite o valor");
+                    if(number != -1) {
+                        fc.filter = SMALLERTHEN;
+                        fc.f_value = number;
+                    }
+                } else if(strcmp(options[selected], "Clear") == 0) {
+                    fc.filter = CLEAR;
+                    fc.f_value = 0;
                 } else if(strcmp(options[selected], "Voltar") == 0) {
                     break;
                 }
