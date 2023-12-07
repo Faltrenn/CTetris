@@ -60,7 +60,8 @@ void play(Player *player) {
 
     clock_t before = clock();
 
-    int past = 0, now = 0;
+    float past = 0, now = 0;
+    unsigned int speed = 1, setted_blocks = 0, dificulty = 10;
 
     Record *record = malloc(sizeof(Record));
     for (int i = 0; i < 6; i++) {
@@ -73,7 +74,7 @@ void play(Player *player) {
 
     WINDOW *infos = newwin(INFO_HEIGHT, INFO_WIDTH, INFO_POSY, INFO_POSX);
     
-    wclear(infos);
+    
     mvwprintw(infos, 0, 0, "Pontuacao: %d", record->score);
     wrefresh(infos);
 
@@ -91,13 +92,15 @@ void play(Player *player) {
             direction.y = 1;
         } else if(key == ' ') {
             down_piece(piece, map, options, game_window);
+            if(++setted_blocks % 6 == 0)
+                speed++;
         } else if(key == 'r') {
             rotate_piece(piece, map);
         }
 
         clock_t diff = clock() - before;
-        now = (int)diff / CLOCKS_PER_SEC;
-        if(past != now) {
+        now = (float)diff / CLOCKS_PER_SEC;
+        if(now - past >= 1/(float)speed) {
             past = now;
             direction.y = 1;
         }
@@ -113,11 +116,15 @@ void play(Player *player) {
                 map[b->position.y + piece->position.y - 1][b->position.x + piece->position.x] = '[';
                 map[b->position.y + piece->position.y - 1][b->position.x + piece->position.x + 1] = ']';
             }
+                        
             get_piece(piece, options);
             if(piece_collides(piece, map)) {
                 save_record(record);
                 break;
             }
+            
+            if(++setted_blocks % dificulty == 0)
+                speed++;
         }
 
         for(int i = GAME_HEIGHT-1; i > 0; i--) {

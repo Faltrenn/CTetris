@@ -89,8 +89,9 @@ void menu_score(Player *player) {
         wclear(w_l);
         
         print_centered(w_l, 0, COLS/2, LINES, 0, "Pressione ESC para voltar", 0, -1);
-        print_centered(w_l, 1, COLS/2, LINES, 0, "Digite f para filtrar", 0, -1);
-        print_centered(w_l, 2, COLS/2, LINES, 0, "Digite o para organizar", 0, -1);
+        print_centered(w_l, 1, COLS/2, LINES, 0, "Digite 'f' para filtrar", 0, -1);
+        print_centered(w_l, 2, COLS/2, LINES, 0, "Digite 'o' para organizar", 0, -1);
+        print_centered(w_l, 3, COLS/2, LINES, 0, "Digite 'b' para focar", 0, -1);
         
         wrefresh(w_l);
         
