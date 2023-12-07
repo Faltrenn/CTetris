@@ -24,7 +24,8 @@ int verify_filter(FilterConfig fc, Record record) {
            (fc.view == PLAYER && strcmp(record.name, fc.player->name) != 0);
 }
 
-RecordList * read_scores(char *file, FilterConfig fc) {
+RecordList * read_scores(char *file, FilterConfig fc, RecordList *last) {
+    free_recordlist(last);
     RecordList *list = NULL;
     Record record;
     FILE *f = fopen("records.dat", "rb");
@@ -69,6 +70,13 @@ void show_scores(WINDOW *w, RecordList *r_list) {
     wrefresh(w);
 }
 
+void free_recordlist(RecordList *rl) {
+    if(rl != NULL)
+        if(rl->next != NULL)
+            free_recordlist(rl->next);
+    free(rl);
+}
+
 void menu_score(Player *player) {
     WINDOW *w_l = newwin(LINES, COLS/2, 0, 0);
     WINDOW *w_r = newwin(LINES, COLS/2, 0, COLS/2);
@@ -83,7 +91,10 @@ void menu_score(Player *player) {
     
     start_color();
     
-    show_scores(w_r, read_scores("records.dat", fc));
+    RecordList *rl = NULL;
+    rl = read_scores("records.dat", fc, rl);
+    
+    show_scores(w_r, rl);
 
     while(1) {
         wclear(w_l);
@@ -105,7 +116,8 @@ void menu_score(Player *player) {
             };
             
             while(1) {
-                show_scores(w_r, read_scores("records.dat", fc));
+                rl = read_scores("records.dat", fc, rl);
+                show_scores(w_r, rl);
                 
                 int selected = selection(w_l, options, COLS/2, LINES);
                 
@@ -127,7 +139,8 @@ void menu_score(Player *player) {
             };
             
             while(1) {
-                show_scores(w_r, read_scores("records.dat", fc));
+                rl = read_scores("records.dat", fc, rl);
+                show_scores(w_r, rl);
                 
                 int selected = selection(w_l, options, COLS/2, LINES);
                 
@@ -159,7 +172,8 @@ void menu_score(Player *player) {
             };
             
             while(1) {
-                show_scores(w_r, read_scores("records.dat", fc));
+                rl = read_scores("records.dat", fc, rl);
+                show_scores(w_r, rl);
                 
                 int selected = selection(w_l, options, COLS/2, LINES);
                 

@@ -47,8 +47,10 @@ RecordList * create_recordlist(Record record, RecordList *next);
 
 int verify_filter(FilterConfig fc, Record record);
 
-RecordList * read_scores(char *file, FilterConfig fc);
+RecordList * read_scores(char *file, FilterConfig fc, RecordList *last);
 
 void show_scores(WINDOW *w, RecordList *r_list);
+
+void free_recordlist(RecordList *rl);
 
 #endif /* menu_score_h */
