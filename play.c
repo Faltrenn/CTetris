@@ -24,9 +24,9 @@ void render_map(WINDOW *w, char **map, Piece *piece) {
 }
 
 void save_record(Record *record) {
-    FILE *save_at = fopen("records.dat", "ab");
+    FILE *save_at = fopen("records.dat", "a+b");
     if(save_at == NULL) {
-        save_at = fopen("records.dat", "wb");
+        save_at = fopen("records.dat", "w+b");
     }
     fwrite(record, sizeof(Record), 1, save_at);
     fclose(save_at);
@@ -55,8 +55,8 @@ void play(Player *player) {
         "bb\n bb",
     };
 
-    Piece *piece = malloc(sizeof(Piece));
-    get_piece(piece, options);
+    Piece *piece = NULL;
+    piece = get_piece(piece, options);
 
     clock_t before = clock();
 
@@ -69,11 +69,11 @@ void play(Player *player) {
     }
     record->name[6] = '\0';
     record->score = 0;
+    record->deleted = 0;
 
     WINDOW *game_window = newwin(GAME_HEIGHT, GAME_WIDTH, GAME_POSY, GAME_POSX);
 
     WINDOW *infos = newwin(INFO_HEIGHT, INFO_WIDTH, INFO_POSY, INFO_POSX);
-    
     
     mvwprintw(infos, 0, 0, "Pontuacao: %d", record->score);
     wrefresh(infos);
@@ -91,7 +91,7 @@ void play(Player *player) {
         } else if(key == KEY_DOWN) {
             direction.y = 1;
         } else if(key == ' ') {
-            down_piece(piece, map, options, game_window);
+            piece = down_piece(piece, map, options, game_window);
             if(++setted_blocks % 6 == 0)
                 speed++;
         } else if(key == 'r') {
@@ -117,7 +117,7 @@ void play(Player *player) {
                 map[b->position.y + piece->position.y - 1][b->position.x + piece->position.x + 1] = ']';
             }
                         
-            get_piece(piece, options);
+            piece = get_piece(piece, options);
             if(piece_collides(piece, map)) {
                 save_record(record);
                 break;
@@ -145,40 +145,4 @@ void play(Player *player) {
     }
 
     endwin();
-}
-
-void gameover(Record record) {
-    char name[4] = {'_', '_', '_', '\0'};
-    nodelay(stdscr, 0);
-    curs_set(1);
-    keypad(stdscr, 1);
-
-    int i = 0;
-    while(i < 3) {
-        clear();
-
-        mvprintw(0,0, "Name: %s", name);
-        
-        move(0, 6+i);
-
-        int key = getch();
-        if(key >= 'a' && key <= 'z') {
-            name[i] = key;
-            i++;
-        } else if(key == 127) {
-            if (i > 0) {
-                i--;
-                name[i] = '_';
-            }
-        }
-
-        refresh();
-    }
-
-    curs_set(0);
-    name[3] = '\0';
-
-    strcpy(record.name, name);
-
-    
 }

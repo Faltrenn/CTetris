@@ -9,6 +9,7 @@
 #include "menu_score.h"
 #include <stdlib.h>
 #include <string.h>
+#include "util.h"
 
 RecordList * create_recordlist(Record record, RecordList *next) {
     RecordList *nl = malloc(sizeof(RecordList));
@@ -28,43 +29,66 @@ RecordList * read_scores(char *file, FilterConfig fc, RecordList *last) {
     free_recordlist(last);
     RecordList *list = NULL;
     Record record;
-    FILE *f = fopen("records.dat", "rb");
-    for (fread(&record, sizeof(Record), 1, f); !feof(f); fread(&record, sizeof(Record), 1, f)) {
-        if(verify_filter(fc, record)) {
-            continue;
-        }
-        if (list == NULL) {
-            list = create_recordlist(record, list);
-        } else {
-            RecordList *last = NULL;
-            for (RecordList *element = list; element != NULL; element = element->next) {
-                if((fc.score == CRESCENT && record.score > element->record.score) || (fc.score == DECRESCENT && record.score < element->record.score)) {
-                    if(last == NULL) {
-                        list = create_recordlist(record, element);
-                    } else {
-                        last->next = create_recordlist(record, element);
-                    }
-                    break;
-                } else if(element->next == NULL) {
-                    element->next = create_recordlist(record, NULL);
-                    break;
+    FILE *f = fopen("records.dat", "r+b");
+    if(f != NULL) {
+        for (fread(&record, sizeof(Record), 1, f); !feof(f); fread(&record, sizeof(Record), 1, f)) {
+            if(record.deleted == 0) {
+                if(verify_filter(fc, record)) {
+                    continue;
                 }
-                
-                last = element;
+                if (list == NULL) {
+                    list = create_recordlist(record, list);
+                } else {
+                    RecordList *last = NULL;
+                    for (RecordList *element = list; element != NULL; element = element->next) {
+                        if((fc.score == CRESCENT && record.score > element->record.score) || (fc.score == DECRESCENT && record.score < element->record.score)) {
+                            if(last == NULL) {
+                                list = create_recordlist(record, element);
+                            } else {
+                                last->next = create_recordlist(record, element);
+                            }
+                            break;
+                        } else if(element->next == NULL) {
+                            element->next = create_recordlist(record, NULL);
+                            break;
+                        }
+                        
+                        last = element;
+                    }
+                }
             }
         }
+        fclose(f);
     }
-    fclose(f);
     return list;
 }
 
-void show_scores(WINDOW *w, RecordList *r_list) {
+RecordList * get_recordlist_element(RecordList *rl, unsigned int position) {
+    int i = 0;
+    for (RecordList *element = rl; element != NULL; element = element->next) {
+        if(i == position)
+            return element;
+        i++;
+    }
+    return NULL;
+}
+
+void show_scores(WINDOW *w, RecordList *r_list, int selected) {
+    start_color();
+    init_pair(1, COLOR_BLUE, COLOR_BLACK);
+
     wclear(w);
     int i = 0;
     for(RecordList *rl = r_list; rl != NULL; rl = rl->next) {
         char msg[COLS];
         sprintf(msg, "%s: %d", rl->record.name, rl->record.score);
-        print_centered(w, i, COLS/2, LINES, COLS/2, msg, -1, -1);
+        if (selected == i) {
+            wattron(w, COLOR_PAIR(1));
+            print_centered(w, i, COLS/2, LINES, COLS/2, msg, -1, -1);
+            wattroff(w, COLOR_PAIR(1));
+        } else {
+            print_centered(w, i, COLS/2, LINES, COLS/2, msg, -1, -1);
+        }
         i++;
     }
     wrefresh(w);
@@ -92,17 +116,18 @@ void menu_score(Player *player) {
     start_color();
     
     RecordList *rl = NULL;
-    rl = read_scores("records.dat", fc, rl);
     
-    show_scores(w_r, rl);
-
     while(1) {
+        rl = read_scores("records.dat", fc, rl);
+        show_scores(w_r, rl, -1);
+    
         wclear(w_l);
         
         print_centered(w_l, 0, COLS/2, LINES, 0, "Pressione ESC para voltar", 0, -1);
         print_centered(w_l, 1, COLS/2, LINES, 0, "Digite 'f' para filtrar", 0, -1);
         print_centered(w_l, 2, COLS/2, LINES, 0, "Digite 'o' para organizar", 0, -1);
         print_centered(w_l, 3, COLS/2, LINES, 0, "Digite 'b' para focar", 0, -1);
+        print_centered(w_l, 4, COLS/2, LINES, 0, "Digite 'd' para deletar", 0, -1);
         
         wrefresh(w_l);
         
@@ -117,7 +142,7 @@ void menu_score(Player *player) {
             
             while(1) {
                 rl = read_scores("records.dat", fc, rl);
-                show_scores(w_r, rl);
+                show_scores(w_r, rl, -1);
                 
                 int selected = selection(w_l, options, COLS/2, LINES);
                 
@@ -140,7 +165,7 @@ void menu_score(Player *player) {
             
             while(1) {
                 rl = read_scores("records.dat", fc, rl);
-                show_scores(w_r, rl);
+                show_scores(w_r, rl, -1);
                 
                 int selected = selection(w_l, options, COLS/2, LINES);
                 
@@ -173,7 +198,7 @@ void menu_score(Player *player) {
             
             while(1) {
                 rl = read_scores("records.dat", fc, rl);
-                show_scores(w_r, rl);
+                show_scores(w_r, rl, -1);
                 
                 int selected = selection(w_l, options, COLS/2, LINES);
                 
@@ -185,6 +210,45 @@ void menu_score(Player *player) {
                     break;
                 }
             }
+        } else if(key == 'd') {
+            int selected_id = 0;
+            
+            rl = read_scores("records.dat", fc, rl);
+            
+            int i = 0;
+            for(RecordList *element = rl; element != NULL; element = element->next)
+                i++;
+            
+            while(1) {
+                show_scores(w_r, rl, selected_id);
+                
+                int key = getch();
+                if(key == KEY_DOWN) {
+                    if(selected_id < i-1) {
+                        selected_id++;
+                    }
+                } else if(key == KEY_UP) {
+                    if(selected_id > 0) {
+                        selected_id--;
+                    }
+                } else if(key == '\n') {
+                    char *options[] = {
+                        "Apagar",
+                        "Cancelar",
+                        NULL
+                    };
+                    
+                    int selected = selection(stdscr, options, COLS, LINES);
+                    if(strcmp(options[selected], "Apagar") == 0) {
+                        RecordList *element = get_recordlist_element(rl, selected_id);
+                        delete_record("records.dat", element, player);
+                        break;
+                    } else {
+                        break;
+                    }
+                }
+            }
+            
         } else if(key == 27) {
             break;
         }
@@ -225,3 +289,26 @@ int read_number(char *title) {
     }
     return -1;
 }
+
+int delete_record(char *file, RecordList *element, Player *player){
+    if(strcmp(element->record.name, player->name) == 0) {
+        FILE *f = fopen(file, "r+b");
+        if(f != NULL) {
+            Record record;
+            for(fread(&record, sizeof(Record), 1, f); !feof(f); fread(&record, sizeof(Record), 1, f)) {
+                if(record.deleted == 0 && strcmp(record.name, element->record.name) == 0 && record.score == element->record.score) {
+                    record.deleted = 1;
+                    fseek(f, -sizeof(Record), SEEK_CUR);
+                    fwrite(&record, sizeof(Record), 1, f);
+                    fclose(f);
+                    return 1; // Conseguiu
+                }
+            }
+            fclose(f);
+            return 2; // Não encontrou
+        }
+        return 3; // arquivo nao existe
+    }
+    return 4; // Não pertence ao player
+}
+

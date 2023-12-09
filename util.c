@@ -45,7 +45,7 @@ int try_login(char name[7], char password[10], Player *player) {
     int code = verify_name_and_password(name, password);
     if(code != 1)
         return code;
-    FILE *file = fopen("players.dat", "rb");
+    FILE *file = fopen("players.dat", "r+b");
     if(file != NULL){
         Player *p = malloc(sizeof(Player));
         while(!feof(file)) {
@@ -76,18 +76,18 @@ int try_register(char name[7], char password[10]) {
     strcpy(player->name, name);
     strcpy(player->password, password);
     
-    FILE *file = fopen("players.dat", "ab");
+    FILE *file = fopen("players.dat", "a+b");
     if(file == NULL) {
-        file = fopen("players", "wb");
+        file = fopen("players", "w+b");
     }
-    fwrite(player, sizeof(player), 1, file);
+    fwrite(player, sizeof(Player), 1, file);
     
     fclose(file);
     return 1;
 }
 
 Player * search_player(char name[7]) {
-    FILE *file = fopen("players.dat", "rb");
+    FILE *file = fopen("players.dat", "r+b");
     if(file != NULL) {
         Player *player = malloc(sizeof(Player));
         while(!feof(file)) {
@@ -97,8 +97,8 @@ Player * search_player(char name[7]) {
                 return player;
             }
         }
+        fclose(file);
     }
-    fclose(file);
     return NULL;
 }
 
@@ -135,5 +135,4 @@ int selection(WINDOW *w, char *options[], unsigned int width, unsigned int heigh
         }
     }
 }
-
 

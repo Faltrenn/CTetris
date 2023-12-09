@@ -27,8 +27,8 @@ void show_piece(Piece *piece, WINDOW *w);
 int piece_collides(Piece *piece, char **map);
 void move_piece(Piece *piece, Vector2 direction, char **map);
 void rotate_piece(Piece *piece, char **map);
-void down_piece(Piece * piece, char **map, char *options[], WINDOW *w);
-void get_piece(Piece *out, char *options[]);
+Piece * down_piece(Piece * piece, char **map, char *options[], WINDOW *w);
+Piece * get_piece(Piece *out, char *options[]);
 
 typedef struct instruction {
     char *content;
@@ -37,5 +37,7 @@ typedef struct instruction {
 
 Instruction * create_instruction(char *content, Instruction *next);
 Instruction * create_instructions(char *contents[]);
+void free_piece(Piece *piece);
+void free_blocks(Block *block);
 
 #endif

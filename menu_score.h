@@ -49,8 +49,12 @@ int verify_filter(FilterConfig fc, Record record);
 
 RecordList * read_scores(char *file, FilterConfig fc, RecordList *last);
 
-void show_scores(WINDOW *w, RecordList *r_list);
+void show_scores(WINDOW *w, RecordList *r_list, int selected);
 
 void free_recordlist(RecordList *rl);
+
+RecordList * get_recordlist_element(RecordList *rl, unsigned int position);
+
+int delete_record(char *file, RecordList *element, Player *player);
 
 #endif /* menu_score_h */

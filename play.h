@@ -14,6 +14,7 @@ void render_map(WINDOW *w, char **map, Piece *piece);
 typedef struct {
     char name[7];
     unsigned int score;
+    unsigned int deleted;
 } Record;
 
 void gameover(Record record);

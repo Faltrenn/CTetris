@@ -121,11 +121,25 @@ void rotate_piece(Piece *piece, char **map) {
     }
 }
 
-void get_piece(Piece *out, char *options[]) {
-    *out = *create_piece(options[rand() % 6]);
+void free_blocks(Block *blocks) {
+    if(blocks->next != NULL)
+        free_blocks(blocks->next);
+    free(blocks);
 }
 
-void down_piece(Piece * piece, char **map, char *options[], WINDOW *w) {
+void free_piece(Piece *piece) {
+    if(piece != NULL && piece->blocks != NULL) {
+        free_blocks(piece->blocks);
+        free(piece);
+    }
+}
+
+Piece * get_piece(Piece *out, char *options[]) {
+    free_piece(out);
+    return create_piece(options[rand() % 6]);
+}
+
+Piece * down_piece(Piece * piece, char **map, char *options[], WINDOW *w) {
     Vector2 direction;
     direction.x = 0;
     direction.y = 1;
@@ -137,7 +151,7 @@ void down_piece(Piece * piece, char **map, char *options[], WINDOW *w) {
                 map[b->position.y + piece->position.y - 1][b->position.x + piece->position.x] = '[';
                 map[b->position.y + piece->position.y - 1][b->position.x + piece->position.x + 1] = ']';
             }
-            get_piece(piece, options);
+            return get_piece(piece, options);
             break;
         }
 
