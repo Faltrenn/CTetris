@@ -60,8 +60,8 @@ int try_login(char name[7], char password[10], Player *player) {
                 return 1;
             }
         }
+        fclose(file);
     }
-    fclose(file);
     return 0;
 }
 
