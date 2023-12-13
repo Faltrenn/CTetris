@@ -136,3 +136,39 @@ int selection(WINDOW *w, char *options[], unsigned int width, unsigned int heigh
     }
 }
 
+int read_number(char *title) {
+    int value_count = 0;
+    char value[5] = {'\0', '\0', '\0', '\0', '\0'};
+    
+    while(1) {
+        clear();
+        
+        print_centered(stdscr, 0, COLS, LINES, COLS, "Pressione ESC para voltar", 0, 0);
+        
+        print_centered(stdscr, 1, COLS, LINES, COLS, title, 0, 0);
+        print_centered(stdscr, 2, COLS, LINES, COLS, "____", 0, 0);
+        print_centered(stdscr, 2, COLS, LINES, 4, value, -1, 0);
+        
+        refresh();
+        
+        int key = getch();
+        if(key == '\n') {
+            return strcmp(value, "") != 0 ? atoi(value) : -1;
+        } else if(key == 27) {
+            for(int i = 0; i < 5; i++) {
+                value[i] = '\0';
+            }
+            value_count = 0;
+            break;
+        } else if(key == 127 && value_count > 0) {
+            value_count--;
+            value[value_count] = '\0';
+        } else if(value_count < 4 && key_is_digit(key)) {
+            value[value_count] = key;
+            value_count++;
+        }
+    }
+    return -1;
+}
+
+

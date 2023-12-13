@@ -84,7 +84,7 @@ void menu_login(void) {
             selected = 0;
             break;
         } else if(selected == 0) {
-            if(key == 127 && name_count > 0) {
+            if((key == 127 || key == KEY_DC || key == KEY_BACKSPACE) && name_count > 0) {
                 name_count--;
                 name[name_count] = '\0';
             } else if(name_count < 6 && key_is_letter(key)) {
@@ -92,7 +92,7 @@ void menu_login(void) {
                 name_count++;
             }
         } else if(selected == 1) {
-            if(key == 127 && password_count > 0) {
+            if((key == 127 || key == KEY_DC || key == KEY_BACKSPACE) && password_count > 0) {
                 password_count--;
                 password[password_count] = '\0';
             } else if (password_count < 9 && key_is_letter(key)) {

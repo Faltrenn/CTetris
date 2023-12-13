@@ -25,4 +25,6 @@ Player * search_player(char name[7]);
 int selection(WINDOW *w, char *options[], unsigned int width, unsigned int height);
 int read_number(char *title);
 
+int read_number(char *title);
+
 #endif /* utils_h */
