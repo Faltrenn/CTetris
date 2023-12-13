@@ -136,7 +136,7 @@ void free_piece(Piece *piece) {
 
 Piece * get_piece(Piece *out, char *options[]) {
     free_piece(out);
-    return create_piece(options[rand() % 6]);
+    return create_piece(options[rand() % 7]);
 }
 
 Piece * down_piece(Piece * piece, char **map, char *options[], WINDOW *w) {
