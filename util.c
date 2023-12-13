@@ -160,7 +160,7 @@ int read_number(char *title) {
             }
             value_count = 0;
             break;
-        } else if(key == 127 && value_count > 0) {
+        } else if((key == 127 || key == KEY_DC || key == KEY_BACKSPACE) && value_count > 0) {
             value_count--;
             value[value_count] = '\0';
         } else if(value_count < 4 && key_is_digit(key)) {
